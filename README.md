@@ -11,3 +11,7 @@ The directory has three sub-directories:
 
 There will be a Makefile in every directory and a main Makefile
 outside.
+
+The code for the exercises are written in R. You will require the
+following packages to run the code
+- dplyr, BLPestimatoR
