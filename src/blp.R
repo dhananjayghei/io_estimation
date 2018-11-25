@@ -14,6 +14,25 @@ temp <- dat %>%
 temp$outside_shares <- 1-temp$sum_shares
 # Getting the diff log to estimate the linearized version of the logit demand
 temp$diff_shares <- log(temp$market_share)-log(temp$outside_shares)
+temp$cons <- rep(1, nrow(temp))
+
+# -----------------------Question 2
+# Writing the log likelihood function
+log_ll <- function(theta, y=y, X=X){
+    beta  <- theta[1:6]
+    probs <- exp(X %*% beta)/sum(exp(X %*% beta))
+    logl <- sum(y*log(probs)+(1-y)*log(1-probs))
+    return(-logl)
+}
+
+# Constructing the variables
+y <- temp$market_share
+X  <- as.matrix(temp[, c("cons", "horsepower_weight", "ac_standard", "miles_per_dollar", "length_width", "price")])
+
+# Maximum likelihood estimation
+mle.res <- optim(par=c(-10,-0.12,-0.03, 0.26,2.34,-0.088), fn=log_ll, method="Nelder-Mead", y=y, X=X, hessian=TRUE)
+
+mle.res2 <- optim(par=rep(1,6), fn=log_ll, method="Nelder-Mead", y=y, X=X, hessian=TRUE)
 
 # -----------------------Question 3 
 # Part 1. Estimate the linearised version of the logit demand 
@@ -61,7 +80,6 @@ hdacco90_cpe <- apply(price_coeff, 2, function(x){
 # -----------------------Question 4 
 # Part 1. Construct the instruments 
 # Market is defined as firmid and year
-temp$cons <- rep(1, nrow(temp))
 
 # These are the correct instruments as stated in BLP.
 # As a test, they match the BLP data from the hdm package.
