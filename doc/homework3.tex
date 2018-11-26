@@ -1,0 +1,82 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=.75in]{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{float} \usepackage{appendix}
+\floatstyle{ruled} \restylefloat{table} \restylefloat{figure}
+
+\newcommand{\floatintro}[1]{
+  
+  \vspace*{0.1in}
+  
+  {\footnotesize
+
+    #1
+    
+  }
+  
+  \vspace*{0.1in} }
+\newcommand{\Hline}{\noindent\rule{17cm}{0.5pt}} \title{Homework 3:
+  Industrial Organisation} \author{Dhananjay Ghei} \date{November 27,
+  2018}
+\begin{document}
+\maketitle
+\section*{Question 1}
+There are $J_t+1$goods in each year $t=1971,\dots,1990$ including the
+outside good. Assume utility is given by
+\begin{align*}
+  u_{ij} = \alpha (y_i-p_j) + x_j \beta + \epsilon_{ij} \qquad j=0,\dots,J_t
+\end{align*}
+
+\section*{Question 2}
+
+\section*{Question 3}
+Estimate the logit demand specification using the linearised version
+of this model from BLP. What is the implied own-price elasticity of
+the 1990 Honda Accord (HDACCO)? What is the implied cross-price
+elasticity of Honda Accord with respect to the 1990 Ford Escort
+(FDESC))? Pick two additional cars and report the same numbers. \\
+\Hline \\
+
+\begin{table}[htbp!]
+  \floatintro{The table reports the descriptive statistics of the data
+  similar to Table 1 of BLP. The columns are sales weighted mean of
+  the variables in each year.}
+  \centering
+  \input{./tables/blp_table1_float.gen}
+  \caption{Descriptive Statistics}
+  \label{tab:desc_stats}
+\end{table}
+
+\begin{table}[htbp!]
+  \centering
+  \input{./tables/ols_elast_float.gen}
+  \caption{Elasticities from Ordinary Least Squares}
+  \label{tab:ols_elas}
+\end{table}
+
+\section*{Question 4}
+Use the instruments used in Berry-Levinsohn-Pakes. You will need the
+firmids and the year variables to calculate these instruments (they
+are product firm-year specific). Estimate the logit model using 2SLS
+and instrumenting for price. What is the implied own-price elasticity
+of the 1990 Honda Accord (HDACCO)? What is the implied cross-price
+elasticity of Honda Accord with respect to the 1990 Ford Escort
+(FDESCO)? Pick two additional cars and report the same numbers. \\
+\Hline \\
+
+\begin{table}[htbp!]
+  \centering
+  \input{./tables/iv_elast_float.gen}
+  \caption{Elasticities from Instrument Variable Regression}
+  \label{tab:iv_elas}
+\end{table}
+
+\begin{table}[htbp!]
+  \centering
+  \input{./tables/ols_iv_reg.gen}
+  \caption{Results with Logit Demand}
+  \label{tab:ols_iv}
+\end{table}
+\end{document}
