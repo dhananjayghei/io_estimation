@@ -13,5 +13,5 @@ There will be a Makefile in every directory and a main Makefile
 outside.
 
 The code for the exercises are written in R. You will require the
-following packages to run the code
-- dplyr, BLPestimatoR
+following packages to run the code and generate the results.
+- dplyr, BLPestimatoR, AER, xtable
