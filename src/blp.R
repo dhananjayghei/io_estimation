@@ -1,5 +1,9 @@
+# Sourcing the functions file
+source("functions.R")
 # Loading in the required libraries
 library(dplyr) # For data wrangling
+library(xtable) # For LaTeX tables
+library(stargazer) # For regression tables in LaTeX
 library(AER) # For IV regression
 # library(BLPestimatoR)
 # Reading in the BLP data
@@ -18,64 +22,56 @@ temp$cons <- rep(1, nrow(temp))
 
 # -----------------------Question 2
 # Writing the log likelihood function
-log_ll <- function(theta, y=y, X=X){
+log_ll <- function(theta, y=y, X=X, Z=Z){
     beta  <- theta[1:6]
-    probs <- exp(X %*% beta)/sum(exp(X %*% beta))
-    logl <- sum(y*log(probs)+(1-y)*log(1-probs))
+    probs <- exp(X %*% beta)/(1+sum(exp(X %*% beta)))
+    logl <- sum(y*log(probs)+Z*log(1-probs))
     return(-logl)
 }
 
 # Constructing the variables
 y <- temp$market_share
 X  <- as.matrix(temp[, c("cons", "horsepower_weight", "ac_standard", "miles_per_dollar", "length_width", "price")])
-
+Z <- temp$outside_shares
 # Maximum likelihood estimation
-mle.res <- optim(par=c(-10,-0.12,-0.03, 0.26,2.34,-0.088), fn=log_ll, method="Nelder-Mead", y=y, X=X, hessian=TRUE)
+mle.res <- optim(par=c(-10,-0.12,-0.03, 0.26,2.34,-0.088), fn=log_ll, method="Nelder-Mead", y=y, X=X, Z=Z, hessian=TRUE)
 
-mle.res2 <- optim(par=rep(1,6), fn=log_ll, method="Nelder-Mead", y=y, X=X, hessian=TRUE)
+mle.res2 <- optim(par=rep(1,6), fn=log_ll, method="Nelder-Mead", y=y, X=X, Z=Z, hessian=TRUE)
 
 # -----------------------Question 3 
+# Replicating Table 1 (with the available variables in the homework)
+# Descriptive statistics (Sales weighted mean)
+table1 <- temp %>%
+    group_by(year) %>%
+    summarise(avg_price = sum(market_share*price)/sum(market_share),
+              avg_hp = sum(market_share*horsepower_weight)/sum(market_share),
+              avg_size = sum(market_share*length_width)/sum(market_share),
+              avg_air = sum(market_share*ac_standard)/sum(market_share),
+              avg_mpg = sum(market_share*miles_per_dollar)/sum(market_share)) %>%
+    ungroup() %>% data.frame()
+table1[,2:ncol(table1)] <- apply(table1[,2:ncol(table1)], 2, function(x) round(x, digits=3))
+colnames(table1) <- c("Year", "Price", "HP/Wt", "Size", "Air", "MPD")
+table1[, 1] <- paste("19", table1[, 1], sep="")
+# Storing the LaTeX table (Replicating Table 1)
+genxtable(xtable(table1, align="llrrrrr"), basename="blp_table1")
+
 # Part 1. Estimate the linearised version of the logit demand 
 # Note that the results of this regression matches exactly
 # with Table III, Column I on Page 873 of BLP (1995) paper
-linear_demand <- glm(diff_shares~horsepower_weight+ac_standard+
+linear_demand <- lm(diff_shares~horsepower_weight+ac_standard+
                          miles_per_dollar+length_width+price, data=temp)
 # Part 2. Calculating the price elasticities 
-# Getting the 5% confidence interval estimate for price
-coeffs_linear_demand <- data.frame(confint(linear_demand))
-price_coeff  <- cbind(coef(linear_demand)["price"],
-                      coeffs_linear_demand["price",])
-colnames(price_coeff) <- c("Coefficient", "2.5%", "97.5%")
-
+# Selecting the cars
 cars <- c("HDACCO", "FDESCO", "VWJETT", "VWPASS")
-
-dat.cars <- temp[which(temp$vehicle_name %in% cars & temp$year==90), ]
-
-# Get own price and cross price elasticities
-## dat.cars.cal <- split(dat.cars, dat.cars$vehicle_name)
-## lapply(dat.cars.cal, function(x){
-##     ope <- -price_coeff[, "Coefficient"]*x[,"price"]*(1-x[,"market_share"])
-##     cpe <- 
-## })
-## sapply(dat.cars, function(x){
-##     ope <- -price_coeff[, "Coefficient"]*x[,"price"]*(1-x[,"market_share"])
-##     return(ope)
-## })
-
-# Honda Accord (1990) "HDACCO"
-hdacco90 <- temp[which(temp$vehicle_name=="HDACCO" & temp$year==90), ]
-# The own price elasticity (-alpha * p_j * (1-s_j)
-# with 95% confidence interval
-hdacco90_ope <- apply(price_coeff, 2, function(x){
-    -x*hdacco90$price*(1-hdacco90$market_share)
-})
-# Cross-price elasticity w.r.t. Ford Escort (1990) "FDESCO"
-# The cross price elasticity (alpha * s_j * s_k)
-# with 95% confidence interval
-fdesco90 <- temp[which(temp$vehicle_name=="FDESCO" & temp$year==90), ]
-hdacco90_cpe <- apply(price_coeff, 2, function(x){
-    x * hdacco90$market_share * fdesco90$market_share
-})
+# Adding the car names
+car.names <- data.frame(vehicle_name=cars, name=c("Honda Accord", "Ford Escort", "VW Jetta", "VW Passat"))
+# Get elasticities
+ols_elasticities <- calc_elasticity(obj=linear_demand, cars=cars, data=temp, year=90)
+# Writing the car names for generating LaTeX tables
+rownames(ols_elasticities) <- car.names[match(rownames(ols_elasticities), car.names$vehicle_name), "name"]
+colnames(ols_elasticities) <- car.names[match(colnames(ols_elasticities), car.names$vehicle_name), "name"]
+# Generating the LaTeX table
+genxtable(xtable(ols_elasticities, align="lrrrr", digits=c(0,rep(5,4))), basename="ols_elast", include.rownames=TRUE)
 
 # -----------------------Question 4 
 # Part 1. Construct the instruments 
@@ -130,41 +126,21 @@ rownames(correct_blp) <- NULL
 # These results match Page 24 Column 2 of Gandhi, Kim and Petrin (NBER WP-2011)
 blpIV <- ivreg(diff_shares~horsepower_weight+ac_standard+miles_per_dollar+length_width+price | horsepower_weight+ac_standard+miles_per_dollar+length_width+own_firm_hpIV+own_firm_airIV+own_firm_mpdIV+own_firm_spaceIV+own_firm_consIV+rival_firm_hpIV+rival_firm_airIV+rival_firm_mpdIV+rival_firm_spaceIV+rival_firm_consIV, data=correct_blp)
 
+# Get elasticities
+iv_elasticities <- calc_elasticity(obj=blpIV, cars=cars, data=correct_blp, year=90)
+# Writing the car names for generating LaTeX tables
+rownames(iv_elasticities) <- car.names[match(rownames(iv_elasticities), car.names$vehicle_name), "name"]
+colnames(iv_elasticities) <- car.names[match(colnames(iv_elasticities), car.names$vehicle_name), "name"]
+# Generating the LaTeX table
+genxtable(xtable(iv_elasticities, align="lrrrr", digits=c(0,rep(5,4))), basename="iv_elast", include.rownames=TRUE)
 
-
-# Function to get own and cross price elasticites of cars
-# Also, generate LaTeX tables
-# Inputs:
-# obj - object of type "lm", "ivreg"
-# cars - vector, contains vehicle names coded as in the data set
-# data - BLP data set
-# year - numeric, contains the year for which we calculate the elasticity
-calc_elasticity <- function(obj, cars, data, year){
-    dat <- data[which(data$vehicle_name %in% cars & data$year == year), ]
-    dat$vehicle_name <- as.character(dat$vehicle_name)
-    dat <- dat[, c("vehicle_name", "year", "market_share", "price")]
-    # Getting the price estimates from the regression object
-    price_est <- coef(obj)["price"]
-    # Calculate own price elasticites
-    dat.vnm  <- split(dat, dat$vehicle_name)
-    own_price <- do.call(rbind, lapply(dat.vnm, function(x){
-        ope <- round(-price_est* x$price *(1-x$market_share),digits=5)
-        return(ope)
-    }))
-    # Calculate cross price elasticities
-    cross_price <- lapply(dat.vnm, function(x){
-        k <- dat.vnm[which(names(dat.vnm) != x$vehicle_name)]
-        cpe <- do.call(rbind, lapply(k, function(y){
-            cpe <- round(-price_est*x$price*y$market_share, digits=5)
-            return(cpe)
-        }))
-        return(cpe)
-    })
-    return(list(own_price=own_price, cross_price=cross_price))
-})
-
-
-
+# Storing the regression results in a LaTeX file
+sink(file="../doc/tables/ols_iv_reg.gen")
+stargazer(linear_demand, blpIV, type="latex",
+          covariate.labels=c("HP/Weight", "Air", "MPD", "Size", "Price"),
+          column.labels=c("OLS", "IV"),
+          float=FALSE)
+sink()
 
 ## Trying the incorrect version of BLP
 ## Doesn't work
@@ -179,3 +155,70 @@ calc_elasticity <- function(obj, cars, data, year){
 ##            sum_cons_mkt = n*(sum(cons)-cons)) %>%
 ##     ungroup() %>% data.frame()
 ## names(pp)[13] <- "count_firm_year"
+
+
+# -----------------------Question 5
+# Random coefficients model
+library(BLPestimatoR)
+# Prepare data for BLP estimation
+blp_model <- as.formula("market_share ~ horsepower_weight+ac_standard+miles_per_dollar+length_width+price |
+horsepower_weight+ac_standard+miles_per_dollar+length_width+0 |
+horsepower_weight+ac_standard+miles_per_dollar+length_width+price |
+horsepower_weight+ac_standard+miles_per_dollar+length_width+own_firm_hpIV+own_firm_airIV+own_firm_mpdIV+own_firm_spaceIV+own_firm_consIV+rival_firm_hpIV+rival_firm_airIV+rival_firm_mpdIV+rival_firm_spaceIV+rival_firm_consIV")
+
+dd <- distinct(correct_blp, vehicle_name, year, .keep_all=TRUE)
+dd$vehicle_name <- as.character(dd$vehicle_name)
+
+# Getting the data ready for BLP estimation
+what <- BLP_data(model=blp_model,
+         market_identifier="year",
+         product_identifier="vehicle_name",
+         productData=dd,
+         blp_inner_tol=1e-6,
+         blp_inner_maxit = 5000,
+         integration_method="MLHS",
+         integration_accuracy = 40,
+         integration_seed = 1)
+
+# Theta guesses
+theta_guesses  <- as.matrix(rep(1,6))
+rownames(theta_guesses) <- c("(Intercept)", "horsepower_weight", "ac_standard",
+                             "miles_per_dollar", "length_width", "price")
+colnames(theta_guesses)[1] <- "unobs_sd"
+
+# Estimates BLP
+blp_est <- estimateBLP(blp_data=what,
+            par_theta2=theta_guesses,
+            solver_method="BFGS", solver_maxit=1000, solver_reltol=1e-6,
+            standardError="heteroskedastic",
+            extremumCheck=FALSE,
+            printLevel=1)
+# Function to get elasticities
+
+get_elasticities(blp_data=what,
+                 blp_estimation=blp_est,
+                 variable="price",
+                 products=c("HDACCO", "FDESCO", "VWJETT"),
+                 market=90)
+
+# -----------------------Question 6
+# Random coefficients model (with income effects)
+incomeMeans <- c(2.01156, 2.06526, 2.07843, 2.05775, 2.02915, 2.05346, 2.06745,
+                 2.09805, 2.10404, 2.07208, 2.06019, 2.06561, 2.07672, 2.10437,
+                 2.12608, 2.16426, 2.18071, 2.18856, 2.21250, 2.18377)
+# Sigma (y)
+sigma_v <- 1.72
+
+set.seed(719345)
+# Number of draws
+ns <- 1500
+
+library(MASS)
+# Error term
+v_ik  <- mvrnorm(n=ns, mu=rep(0,6), Sigma=diag(rep(1,6)))
+# m_t 
+m_t  <- rep(incomeMeans, times=rep(ns, length(incomeMeans)))
+# y_it
+y_it  <- exp(m_t + sigma_v * rep(v_ik, length=length(incomeMeans)))
+
+weight <- 1/ns
