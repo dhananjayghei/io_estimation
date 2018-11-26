@@ -44,12 +44,16 @@ elasticity of Honda Accord with respect to the 1990 Ford Escort
   similar to Table 1 of BLP. The columns are sales weighted mean of
   the variables in each year.}
   \centering
-  \input{./tables/blp_table1_float.gen}
+  \resizebox{.5\textwidth}{!}{
+  \input{./tables/blp_table1_float.gen}}
   \caption{Descriptive Statistics}
   \label{tab:desc_stats}
 \end{table}
 
 \begin{table}[htbp!]
+  \floatintro{The table shows the own-price and cross-price
+    elasticities of different products using the ordinary least squares
+    regression.}
   \centering
   \input{./tables/ols_elast_float.gen}
   \caption{Elasticities from Ordinary Least Squares}
@@ -67,6 +71,9 @@ elasticity of Honda Accord with respect to the 1990 Ford Escort
 \Hline \\
 
 \begin{table}[htbp!]
+  \floatintro{The table shows the own-price and cross-price
+    elasticities of different products using the instrumental variable
+  regression.}
   \centering
   \input{./tables/iv_elast_float.gen}
   \caption{Elasticities from Instrument Variable Regression}
@@ -75,7 +82,8 @@ elasticity of Honda Accord with respect to the 1990 Ford Escort
 
 \begin{table}[htbp!]
   \centering
-  \input{./tables/ols_iv_reg.gen}
+  \resizebox{.7\textwidth}{!}{
+  \input{./tables/ols_iv_reg.gen}}
   \caption{Results with Logit Demand}
   \label{tab:ols_iv}
 \end{table}
