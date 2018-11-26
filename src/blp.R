@@ -53,7 +53,7 @@ table1[,2:ncol(table1)] <- apply(table1[,2:ncol(table1)], 2, function(x) round(x
 colnames(table1) <- c("Year", "Price", "HP/Wt", "Size", "Air", "MPD")
 table1[, 1] <- paste("19", table1[, 1], sep="")
 # Storing the LaTeX table (Replicating Table 1)
-genxtable(xtable(table1, align="llrrrrr"), basename="blp_table1")
+genxtable(xtable(table1, align="llrrrrr", digits=c(0,0,rep(3,5))), basename="blp_table1")
 
 # Part 1. Estimate the linearised version of the logit demand 
 # Note that the results of this regression matches exactly
@@ -137,9 +137,11 @@ genxtable(xtable(iv_elasticities, align="lrrrr", digits=c(0,rep(5,4))), basename
 # Storing the regression results in a LaTeX file
 sink(file="../doc/tables/ols_iv_reg.gen")
 stargazer(linear_demand, blpIV, type="latex",
-          covariate.labels=c("HP/Weight", "Air", "MPD", "Size", "Price"),
+          covariate.labels=c("Constant", "HP/Weight", "Air",
+                             "MPD", "Size", "Price"),
           column.labels=c("OLS", "IV"),
-          float=FALSE)
+          float=FALSE, intercept.bottom=FALSE, dep.var.labels="",
+          model.names=FALSE)
 sink()
 
 ## Trying the incorrect version of BLP
@@ -203,22 +205,56 @@ get_elasticities(blp_data=what,
 
 # -----------------------Question 6
 # Random coefficients model (with income effects)
-incomeMeans <- c(2.01156, 2.06526, 2.07843, 2.05775, 2.02915, 2.05346, 2.06745,
-                 2.09805, 2.10404, 2.07208, 2.06019, 2.06561, 2.07672, 2.10437,
-                 2.12608, 2.16426, 2.18071, 2.18856, 2.21250, 2.18377)
+# Construct the demographic data
+incomeMeans <- c(2.01156, 2.06526, 2.07843, 2.05775, 2.02915, 2.05346,
+                 2.06745, 2.09805, 2.10404, 2.07208, 2.06019, 2.06561,
+                 2.07672, 2.10437, 2.12608, 2.16426, 2.18071, 2.18856,
+                 2.21250, 2.18377)
 # Sigma (y)
 sigma_v <- 1.72
-
-set.seed(719345)
 # Number of draws
-ns <- 1500
+ns <- 100
+# Drawing random data
+demoDat <- do.call(rbind, lapply(incomeMeans, function(x){
+    set.seed(123)
+    k <- rnorm(n=ns, mean=x, sd=sigma_v)
+    return(k)
+}))
 
-library(MASS)
-# Error term
-v_ik  <- mvrnorm(n=ns, mu=rep(0,6), Sigma=diag(rep(1,6)))
-# m_t 
-m_t  <- rep(incomeMeans, times=rep(ns, length(incomeMeans)))
-# y_it
-y_it  <- exp(m_t + sigma_v * rep(v_ik, length=length(incomeMeans)))
+demoDat <- data.frame(demoDat)
+colnames(demoDat) <- paste0("draw_", 1:ncol(demoDat))
+demoDat$year <- unique(correct_blp$year)
+# Rearranging the columns for the demographic data
+demoDat <- demoDat[, c(ncol(demoDat), 1:(ncol(demoDat)-1))]
+demoDat <- list(demoDat)
+names(demoDat) <- "income"
 
-weight <- 1/ns
+blp_incomeEffect <- BLP_data(model=blp_model,
+                             market_identifier="year",
+                             product_identifier="vehicle_name",
+                             productData=dd,
+                             demographic_draws=demoDat,
+                             blp_inner_tol=1e-6,
+                             blp_inner_maxit = 5000,
+                             integration_method="MLHS",
+                             integration_accuracy = ns,
+                             integration_seed = 1)
+
+# Start with the guesses
+theta_guesses  <- matrix(c(rep(1,6), rep(1,6)), nrow=6, ncol=2)
+theta_guesses[1,2] <- 0
+
+# Write in the names in the correct order
+rownames(theta_guesses) <- c("(Intercept)", "horsepower_weight",
+                             "ac_standard", "miles_per_dollar",
+                             "length_width", "price")
+colnames(theta_guesses) <- c("unobs_sd", "income")
+
+# Estimates BLP
+blpEst_incomeEffect <- estimateBLP(blp_data=blp_incomeEffect,
+                             par_theta2=theta_guesses,
+                             solver_method="BFGS", solver_maxit=1000,
+                             solver_reltol=1e-6,
+                             standardError="heteroskedastic",
+                             extremumCheck=FALSE,
+                             printLevel=1)
