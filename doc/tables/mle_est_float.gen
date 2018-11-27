@@ -1,0 +1,14 @@
+% latex table generated in R 3.4.0 by xtable 1.8-2 package
+% Mon Nov 26 22:48:08 2018
+\begin{tabular}{lrr}
+  \hline
+ & Coefficient & StdError \\ 
+  \hline
+(Intercept) & -6.3968 & 0.1354 \\ 
+  HP/Wt & 1.6288 & 0.1432 \\ 
+  Air & -0.2678 & 0.4137 \\ 
+  MPD & 0.2547 & 1.1290 \\ 
+  Size & 2.1963 & 0.4378 \\ 
+  Price & -0.1197 & 5.1132 \\ 
+   \hline
+\end{tabular}

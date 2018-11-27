@@ -1,0 +1,13 @@
+% latex table generated in R 3.4.0 by xtable 1.8-2 package
+% Mon Nov 26 23:20:39 2018
+\begin{tabular}{lrrrrr}
+  \hline
+ & BMW 735i & Ford Escort & Honda Accord & Mercedez Benz S420 & VW Jetta \\ 
+  \hline
+BMW 735i & 6.07989 & -0.00025 & -0.00560 & -0.02271 & -0.00036 \\ 
+  Ford Escort & -0.00006 & -2.99291 & 0.15401 & -0.00008 & 0.02378 \\ 
+  Honda Accord & -0.00057 & 0.06496 & -3.73096 & -0.00052 & 0.01755 \\ 
+  Mercedez Benz S420 & -0.02773 & -0.00041 & -0.00628 & 7.92202 & -0.00043 \\ 
+  VW Jetta & -0.00031 & 0.08719 & 0.15256 & -0.00031 & -3.55410 \\ 
+   \hline
+\end{tabular}
