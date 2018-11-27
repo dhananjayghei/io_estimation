@@ -5,6 +5,7 @@
 \usepackage{amssymb} \usepackage{natbib}
 \usepackage{float} \usepackage{appendix}
 \usepackage{hyperref}
+\usepackage{mathrsfs}
 \floatstyle{ruled} \restylefloat{table} \restylefloat{figure}
 \bibliographystyle{unsrtnat}
 
@@ -24,6 +25,10 @@
   2018}
 \begin{document}
 \maketitle
+\textit{N.B. The code for this exercise was written in
+\texttt{R} and is available on my Github
+account. \url{www.github.com/dhananjayghei/io_estimation}.}
+
 \section*{Question 1}
 There are $J_t+1$ goods in each year $t=1971,\dots,1990$ including the
 outside good. Assume utility is given by
@@ -36,25 +41,73 @@ observe aggregate data - market shares - as opposed to the micro-level
 data of zeros and ones (no purchase, purchase).  Derive the
 appropriate likelihood function for the aggregated data by starting
 with the micro-level specification and regrouping. \\ \Hline \\
-\textit{N.B.} The code for this exercise was written in
-\texttt{R} and is available on my Github
-account. \url{github.com/dhananjayghei/io_estimation}.
 
+First, normalize the utility with respect to $u_{i0}$.
+\begin{align*}
+  \widetilde{u_{ij}} = u_{ij} - u_{i0} &= - \alpha p_j + x_j \beta + \epsilon_{ij} - \epsilon_{i0}\\
+                  &= \delta_j +  \epsilon_{ij} - \epsilon_{i0}
+\end{align*}
+Denote $u_{ij} := \widetilde{u_{ij}}$. Now, note that the error term
+is type 1 extreme value and is i.i.d. we can write:
+\begin{align*}
+  Pr(u_{ij}>u_{ik} \ \forall k \neq j | \epsilon_{ij}) 
+  = \prod_{k \neq j} Pr(u_{ij}>u_{ik} | \epsilon_{ij}) &= \prod_{k \neq j} Pr(\epsilon_{ik}>\epsilon_{ij} + \delta_j - \delta_k | \epsilon_{ij}) \\
+  &= \prod_{k \neq j} e^{-e^{-(\epsilon_{ij} + \delta_j - \delta_k)}}
+\end{align*}
+which gives us:
+\begin{align*}
+  Pr(u_{ij}>u_{ik} \ \forall k \neq j) 
+  &= \int_{-\infty}^{\infty} \prod_{k \neq j} e^{-e^{-(\epsilon_{ij} + \delta_j - \delta_k)}} e^{-\epsilon_{ij}} + e^{-e^{-\epsilon_{ij}}} d {\epsilon_{ij}} \\
+  &= \int_{-\infty}^{\infty} \prod_{k} e^{-e^{-(\epsilon_{ij} + \delta_j - \delta_k)}} e^{-\epsilon_{ij}} d {\epsilon_{ij}}
+\end{align*}
+Define $t \equiv e^{-\epsilon_{ij}}$.
+\begin{align*}
+  Pr(u_{ij}>u_{ik} \ \forall k \neq j) 
+  &= \int^\infty_0 e^{-t(\sum_k e^{\delta_j -\delta_k})} dt \\
+  &= \frac{e^{\delta_j}}{1 + \sum_k e^{\delta_k}} \\
+  &\equiv s_j (\alpha, \beta)
+\end{align*}
+Finally, note that the above expression is for every year and does not
+depend on individual $i$. We can now add the time subscript to each
+product $j$. Then, the maximum-likelihood function $\mathscr{L}$ is
+given by:
+\begin{align*}
+  \mathscr{L} =  \prod_{t=1}^{T} \prod_{j=1}^{J_t} s_{jt}(\alpha, \beta)^{s^d_{jt}} 
+\end{align*}
+, where $s^d_{jt}$ denotes the market share of good $j$ at time $t$ in
+the data.
 \section*{Question 2}
-Using the automobile data, estimate the logit demand specification using
-maximum likelihood and assuming prices are exogenous. What is the implied
-own-price elasticity of the 1990 Honda Accord (HDACCO)? What is the
-implied cross-price elasticity of Honda Accord with respect to the 1990 Ford
-Escort (FDESCO)? Pick two additional cars and report the same
+Using the automobile data, estimate the logit demand specification
+using maximum likelihood and assuming prices are exogenous. What is
+the implied own-price elasticity of the 1990 Honda Accord (HDACCO)?
+What is the implied cross-price elasticity of Honda Accord with
+respect to the 1990 Ford Escort (FDESCO)? Pick two additional cars and
+report the same
 numbers. \\ \Hline \\
-
-
-
+I use the maximum likelihood function defined above, convert it into
+log and run a minimisation routine on the negative of log likelihood
+function to get the estimates. Table \ref{tab:mle_est} gives the
+results from maximum likelihood estimation of the logit demand
+specification. \\
+Table \ref{tab:mle_elas} shows the own and cross-price elasticities of
+four cars - namely, BMW 735i, Ford Escort, Honda Accord and Volkswagen
+Jetta in 1990. To calculate the elasticities, I use the formulas we
+derived in class for the logit demand specification. As expected, the
+logit model generates aggregate substitution patterns, and
+elasticities that cannot possess many of the features that one might
+expect to have (\citet{blp}). For example, in Table
+\ref{tab:mle_elas}, the cross-price elasticity of BMW 735i (typically,
+a luxury car) is the same for Mercedes Benz (another, luxury car) and
+Honda Accord (comparatively, cheaper car). However, one would expect
+that people who buy BMW 735i have a preference for luxury cars and
+they would be substituting more towards luxury cars than towards the
+other cars. This is also a drawback of such models (as pointed out by
+\citet{blp} in their paper.)
 \begin{table}[htbp!]
   \floatintro{The table reports the own-price and cross-price
     elasticities of different products using the maximum likelihood estimation.}
   \centering
-    \input{./tables/mle_elast_float.gen}
+  \input{./tables/mle_elast_float.gen}
   \caption{Elasticities from Maximum Likelihood Estimation}
   \label{tab:mle_elas}
 \end{table}
@@ -64,7 +117,7 @@ numbers. \\ \Hline \\
   \floatintro{The table reports the coefficients and standard errors
     from maximum likelihood estimation.}
   \centering
-    \input{./tables/mle_est_float.gen}
+  \input{./tables/mle_est_float.gen}
   \caption{Results with Maximum Likelihood Estimation}
   \label{tab:mle_est}
 \end{table}
@@ -84,11 +137,11 @@ reports the descriptive statistics and it matches the Table 1 from the
 BLP paper.
 \begin{table}[htbp!]
   \floatintro{The table reports the descriptive statistics of the data
-  similar to Table 1 of BLP. The columns are sales weighted mean of
-  the variables in each year.}
+    similar to Table 1 of BLP. The columns are sales weighted mean of
+    the variables in each year.}
   \centering
   \resizebox{.5\textwidth}{!}{
-  \input{./tables/blp_table1_float.gen}}
+    \input{./tables/blp_table1_float.gen}}
   \caption{Descriptive Statistics}
   \label{tab:desc_stats}
 \end{table}
@@ -98,14 +151,14 @@ version by taking logarithms. Following this transformation, we can
 run OLS to estimate the logit demand. The results for the regression
 are reported in Table \ref{tab:ols_iv}. The results from OLS match
 Column 1 from Table III of \citet{blp} (BLP, hereafter). \\
-Subsequently, I calculate the elasticities for 4 cars - namely, BMW
+Subsequently, I calculate the elasticities for four cars - namely, BMW
 735i, Ford Escort, Honda Accord and Volkswagen Jetta in 1990. Table
 \ref{tab:ols_elas} shows the own and cross-price elasticities for
 these products. As one would expect, the own price elasticities are
 negative and of the right sign. The cross-price elasticities are the
 same for each car w.r.t the other cars. This is because of the logit
-specification. Under the logit specification, the cross-price elasticity of product $j$
-w.r.t. product $k$ is given by:
+specification. Under the logit specification, the cross-price
+elasticity of product $j$ w.r.t. product $k$ is given by:
 \begin{align*}
   \varepsilon_{jk} = \frac{\partial s_j}{\partial p_k} \frac{p_k}{s_j}
   = \alpha p_k s_k
@@ -141,12 +194,12 @@ model. BLP uses three types of instruments:
   market ($\sum_{r \neq j, r \neq J_f} z_{rk}$)
 \end{enumerate}
 I follow this approach and construct the instruments (for all four
-product characteristics and the constant term). It is important
-to note here that the instruments used in the original BLP paper are
+product characteristics and the constant term). It is important to
+note here that the instruments used in the original BLP paper are
 incorrect (as pointed out by Gentzkow and Shapiro in their replication
-file) and hence, our results are not directly comparable to the
-Column 2 of Table III in BLP. However, we can compare these results
-with Column 2 of Table I in \citet{GKP}. Table \ref{tab:ols_iv} shows the
+file) and hence, our results are not directly comparable to the Column
+2 of Table III in BLP. However, we can compare these results with
+Column 2 of Table I in \citet{GKP}. Table \ref{tab:ols_iv} shows the
 results from the instrumental variable regression. \\
 Table \ref{tab:iv_elas} shows the own and cross-price elasticities for
 the same 4 cars as mentioned earlier. Note that, instrumenting leads
@@ -155,23 +208,30 @@ estimates.
 \begin{table}[htbp!]
   \floatintro{The table shows the own-price and cross-price
     elasticities of different products using the instrumental variable
-  regression.}
+    regression.}
   \centering
   \input{./tables/iv_elast_float.gen}
   \caption{Elasticities from Instrument Variable Regression}
   \label{tab:iv_elas}
 \end{table}
-Table \ref{tab:ols_iv} shows the results from the regressions. 
+Table \ref{tab:ols_iv} shows the results from the regressions.
 \begin{table}[htbp!]
+  \floatintro{The table reports the estimates of the coefficients and
+    the standard errors from the OLS and IV regressions on the demand
+    equations. Standard errors are in parenthesis. The data set
+    contains 2217 observations from BLP. Significance levels are reported in
+    the last row of the table. Column I matches the Column I of Table
+    III from \citep{blp}, whereas Column II matches the Column II of Table I
+    from \citet{GKP}}
   \centering
   \resizebox{.7\textwidth}{!}{
-  \input{./tables/ols_iv_reg.gen}}
+    \input{./tables/ols_iv_reg.gen}}
   \caption{Results with Logit Demand}
   \label{tab:ols_iv}
 \end{table}
 
 \section*{Question 5}
-Write 
+Write
 \begin{align*}
   u_{ij} = \alpha (y_i-p_j) + x_j \beta_i + \xi_j + \epsilon_{ij}
   \qquad j=0,\dots,J
@@ -186,9 +246,21 @@ Accord with respect to the 1990 Ford Escort (FDESCO)? Pick two
 additional cars and report the
 same numbers. \\ \Hline \\
 While the estimates look better with instrumental variable
-regressions, the simple model still does not generate the
-substitution patterns as seen in the data. In order to correct for
-this, we introduce the random coefficients model. 
+regressions, the simple model still does not generate the substitution
+patterns as one would expect and is seen in the data. In order to
+correct for this, we introduce the random coefficients model. Table
+\ref{tab:estimates} show the estimates from the random coefficients
+model. The first two columns are the estimates without any demographic
+data. The next two columns are the estimates with the
+income data (Question 6). \\
+As pointed out earlier, I constructed the instruments using the BLP
+approach which are different from the actual instruments used in their
+paper and hence, the results from Table \ref{tab:estimates} are not
+directly comparable to the results in Table IV of
+\citet{blp}. However, the numbers I get are in the similar range as in
+the original paper albeit with larger standard errors as I do not
+include the supply side of the model.
+
 \begin{table}[htbp!]
   \floatintro{The table shows the own-price and cross-price
     elasticities of different products using the random coefficients model.}
@@ -219,7 +291,13 @@ elasticities of different cars using the random coefficients model and
 the income draws. One can see that the elasticity numbers go up and
 the substitution patterns as seen in the earlier logit model
 specification change as well. The elasticities start to look more
-reasonable as we introduce unobserved heterogeneity into the model. 
+reasonable as we introduce unobserved heterogeneity into the
+model. Consider for example, Honda Accord, the cross price elasticity
+for Honda Accord is higher w.r.t. Ford Escort than w.r.t. BMW 735i
+which makes more sense than the logit demand specification. Moreover,
+the substitution patterns are not symmetric anymore as we account for
+both unobserved heterogeneity and the interaction terms.
+
 \begin{table}[htbp!]
   \floatintro{The table shows the own-price and cross-price
     elasticities of different products using the random coefficients
@@ -231,10 +309,11 @@ reasonable as we introduce unobserved heterogeneity into the model.
 \end{table}
 
 \section*{Question 7}
-Put together a table with the point estimates and standard errors for all
-of your estimates. In the case of 5 and 6, you do not need to compute
-the standard errors for the parameters outside of $\delta$, but do
-report the standard errors on the parameters inside of $\delta$, as
+Put together a table with the point estimates and standard errors for
+all of your estimates. In the case of 5 and 6, you do not need to
+compute the standard errors for the parameters outside of $\delta$,
+but do report the standard errors on the parameters inside of
+$\delta$, as
 you do in the exercise 2-4. \\ \Hline\\
 Table \ref{tab:mle_est} reports the maximum likelihood estimation
 results. Table \ref{tab:ols_iv} reports the results from the demand
@@ -242,13 +321,13 @@ side for the OLS and IV models. Table \ref{tab:estimates} reports the
 coefficients estimated from the random coefficients model.
 \begin{table}[htbp!]
   \floatintro{The table shows the estimates of the parameters using
-    random coefficients model using the BLP specification on 2217
-    observations.}
+    random coefficients model using the BLP specification on 2172 distinct
+    observations. The first two columns of estimates are from Question
+    5 and the last two columns of estimates are from Question 6.}
   \centering
   \begin{tabular}{lrrrrr}
     \hline
-    Demand Side & Variable & \multicolumn{2}{r}{No Demographics} &
-                                                                   \multicolumn{2}{r}{With Demographics} \\
+    Demand Side & Variable & \multicolumn{2}{r}{No Demographics} & \multicolumn{2}{r}{With Demographics} \\
     \hline
                 &  & Parameter & Std Error & Parameter & Std Error \\ \hline
     Mean ($\bar \beta$)s & Constant & -9.261 & 1.444 & -10.587 & 1.186 \\
