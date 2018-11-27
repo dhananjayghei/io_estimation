@@ -2,9 +2,11 @@
 \usepackage[margin=.75in]{geometry}
 \usepackage{amsmath}
 \usepackage{graphicx}
-\usepackage{amssymb}
+\usepackage{amssymb} \usepackage{natbib}
 \usepackage{float} \usepackage{appendix}
+\usepackage{hyperref}
 \floatstyle{ruled} \restylefloat{table} \restylefloat{figure}
+\bibliographystyle{unsrtnat}
 
 \newcommand{\floatintro}[1]{
   
@@ -17,28 +19,69 @@
   }
   
   \vspace*{0.1in} }
-\newcommand{\Hline}{\noindent\rule{17cm}{0.5pt}} \title{Homework 3:
+\newcommand{\Hline}{\noindent\rule{18cm}{0.5pt}} \title{Homework 3:
   Industrial Organisation} \author{Dhananjay Ghei} \date{November 27,
   2018}
 \begin{document}
 \maketitle
 \section*{Question 1}
-There are $J_t+1$goods in each year $t=1971,\dots,1990$ including the
+There are $J_t+1$ goods in each year $t=1971,\dots,1990$ including the
 outside good. Assume utility is given by
 \begin{align*}
   u_{ij} = \alpha (y_i-p_j) + x_j \beta + \epsilon_{ij} \qquad j=0,\dots,J_t
 \end{align*}
+with $\epsilon_{ij}$ type 1 extreme value, $y_i$ income, $x_j$, $p_j$
+observed characteristics, and parameters $\beta, \alpha$. Suppose we
+observe aggregate data - market shares - as opposed to the micro-level
+data of zeros and ones (no purchase, purchase).  Derive the
+appropriate likelihood function for the aggregated data by starting
+with the micro-level specification and regrouping. \\ \Hline \\
+\textit{N.B.} The code for this exercise was written in
+\texttt{R} and is available on my Github
+account. \url{github.com/dhananjayghei/io_estimation}.
 
 \section*{Question 2}
+Using the automobile data, estimate the logit demand specification using
+maximum likelihood and assuming prices are exogenous. What is the implied
+own-price elasticity of the 1990 Honda Accord (HDACCO)? What is the
+implied cross-price elasticity of Honda Accord with respect to the 1990 Ford
+Escort (FDESCO)? Pick two additional cars and report the same
+numbers. \\ \Hline \\
+
+
+
+\begin{table}[htbp!]
+  \floatintro{The table reports the own-price and cross-price
+    elasticities of different products using the maximum likelihood estimation.}
+  \centering
+    \input{./tables/mle_elast_float.gen}
+  \caption{Elasticities from Maximum Likelihood Estimation}
+  \label{tab:mle_elas}
+\end{table}
+
+
+\begin{table}[htbp!]
+  \floatintro{The table reports the coefficients and standard errors
+    from maximum likelihood estimation.}
+  \centering
+    \input{./tables/mle_est_float.gen}
+  \caption{Results with Maximum Likelihood Estimation}
+  \label{tab:mle_est}
+\end{table}
 
 \section*{Question 3}
 Estimate the logit demand specification using the linearised version
 of this model from BLP. What is the implied own-price elasticity of
 the 1990 Honda Accord (HDACCO)? What is the implied cross-price
 elasticity of Honda Accord with respect to the 1990 Ford Escort
-(FDESC))? Pick two additional cars and report the same numbers. \\
+(FDESCO)? Pick two additional cars and report the same numbers. \\
 \Hline \\
 
+First, I try to replicate the descriptive statistics of Table 1 from
+BLP. In particular, for all the variables in the dataset, I calculate
+the sales weighted mean and report them. Table \ref{tab:desc_stats}
+reports the descriptive statistics and it matches the Table 1 from the
+BLP paper.
 \begin{table}[htbp!]
   \floatintro{The table reports the descriptive statistics of the data
   similar to Table 1 of BLP. The columns are sales weighted mean of
@@ -50,6 +93,23 @@ elasticity of Honda Accord with respect to the 1990 Ford Escort
   \label{tab:desc_stats}
 \end{table}
 
+Next, I convert the logit demand specification into a linearised
+version by taking logarithms. Following this transformation, we can
+run OLS to estimate the logit demand. The results for the regression
+are reported in Table \ref{tab:ols_iv}. The results from OLS match
+Column 1 from Table III of \citet{blp} (BLP, hereafter). \\
+Subsequently, I calculate the elasticities for 4 cars - namely, BMW
+735i, Ford Escort, Honda Accord and Volkswagen Jetta in 1990. Table
+\ref{tab:ols_elas} shows the own and cross-price elasticities for
+these products. As one would expect, the own price elasticities are
+negative and of the right sign. The cross-price elasticities are the
+same for each car w.r.t the other cars. This is because of the logit
+specification. Under the logit specification, the cross-price elasticity of product $j$
+w.r.t. product $k$ is given by:
+\begin{align*}
+  \varepsilon_{jk} = \frac{\partial s_j}{\partial p_k} \frac{p_k}{s_j}
+  = \alpha p_k s_k
+\end{align*}
 \begin{table}[htbp!]
   \floatintro{The table shows the own-price and cross-price
     elasticities of different products using the ordinary least squares
@@ -59,7 +119,6 @@ elasticity of Honda Accord with respect to the 1990 Ford Escort
   \caption{Elasticities from Ordinary Least Squares}
   \label{tab:ols_elas}
 \end{table}
-
 \section*{Question 4}
 Use the instruments used in Berry-Levinsohn-Pakes. You will need the
 firmids and the year variables to calculate these instruments (they
@@ -69,7 +128,30 @@ of the 1990 Honda Accord (HDACCO)? What is the implied cross-price
 elasticity of Honda Accord with respect to the 1990 Ford Escort
 (FDESCO)? Pick two additional cars and report the same numbers. \\
 \Hline \\
-
+One would assert that the price in the OLS model is correlated with
+the $\xi_j$ term (unobserved product characteristic) and thus, the OLS
+estimates will be biased. Thus, one could think of instrumenting for
+price. I follow BLP's approach and instrument for price in the
+model. BLP uses three types of instruments:
+\begin{enumerate}
+\item Observed product characteristics ($z_{rk}$)
+\item Sum of observed product characteristics of a single firm in the
+  market (excluding the product) ($\sum_{r \neq j} z_{rk}$)
+\item Sum of observed product characteristics of rival firms in the
+  market ($\sum_{r \neq j, r \neq J_f} z_{rk}$)
+\end{enumerate}
+I follow this approach and construct the instruments (for all four
+product characteristics and the constant term). It is important
+to note here that the instruments used in the original BLP paper are
+incorrect (as pointed out by Gentzkow and Shapiro in their replication
+file) and hence, our results are not directly comparable to the
+Column 2 of Table III in BLP. However, we can compare these results
+with Column 2 of Table I in \citet{GKP}. Table \ref{tab:ols_iv} shows the
+results from the instrumental variable regression. \\
+Table \ref{tab:iv_elas} shows the own and cross-price elasticities for
+the same 4 cars as mentioned earlier. Note that, instrumenting leads
+to an increase in the own-price elasticity when compared with the OLS
+estimates.
 \begin{table}[htbp!]
   \floatintro{The table shows the own-price and cross-price
     elasticities of different products using the instrumental variable
@@ -79,7 +161,7 @@ elasticity of Honda Accord with respect to the 1990 Ford Escort
   \caption{Elasticities from Instrument Variable Regression}
   \label{tab:iv_elas}
 \end{table}
-
+Table \ref{tab:ols_iv} shows the results from the regressions. 
 \begin{table}[htbp!]
   \centering
   \resizebox{.7\textwidth}{!}{
@@ -87,4 +169,107 @@ elasticity of Honda Accord with respect to the 1990 Ford Escort
   \caption{Results with Logit Demand}
   \label{tab:ols_iv}
 \end{table}
+
+\section*{Question 5}
+Write 
+\begin{align*}
+  u_{ij} = \alpha (y_i-p_j) + x_j \beta_i + \xi_j + \epsilon_{ij}
+  \qquad j=0,\dots,J
+\end{align*}
+Now add random coefficients for each characteristic and estimate the
+means and variances of these normally distributed random
+coefficients. Estimate the demand side of the model only (unless you
+are ambitious and want smaller standard errors - then add the supply
+side too). What is the implied own- price elasticity of the 1990 Honda
+Accord (HDACCO)?  What is the implied cross-price elasticity of Honda
+Accord with respect to the 1990 Ford Escort (FDESCO)? Pick two
+additional cars and report the
+same numbers. \\ \Hline \\
+While the estimates look better with instrumental variable
+regressions, the simple model still does not generate the
+substitution patterns as seen in the data. In order to correct for
+this, we introduce the random coefficients model. 
+\begin{table}[htbp!]
+  \floatintro{The table shows the own-price and cross-price
+    elasticities of different products using the random coefficients model.}
+  \centering
+  \input{./tables/rand_coef_elast_float.gen}
+  \caption{Elasticities from Random Coefficients Model}
+  \label{tab:rc_elas}
+\end{table}
+
+\section*{Question 6}
+Now add income effects as another random coefficient to the model so
+the utility specification is given by
+\begin{align*}
+  u_{ij} = \alpha \log(y_i-p_j) + x_j \beta_i + \xi_j + \epsilon_{ij}
+  \qquad j=0,\dots,J
+\end{align*}
+Draw $y_i$ from a log-normal with a mean that varies by year for
+1971-1990 given by (2.01156, 2.06526, 2.07843, 2.05775, 2.02915,
+2.05346, 2.06745, 2.09805, 2.10404, 2.07208, 2.06019, 2.06561,
+2.07672, 2.10437, 2.12608, 2.16426, 2.18071, 2.18856, 2.21250,
+2.18377) and a fixed variance given by $\sigma_y = 1.72$. What is the
+implied own-price elasticity of the 1990 Honda Accord (HDACCO)? What
+is the implied cross-price elasticity of Honda Accord with respect to
+the 1990 Ford Escort (FDESCO)? Pick two additional cars and report the
+same numbers. \\ \Hline \\
+Table \ref{tab:rc_elas_inc} reports the own and cross-price
+elasticities of different cars using the random coefficients model and
+the income draws. One can see that the elasticity numbers go up and
+the substitution patterns as seen in the earlier logit model
+specification change as well. The elasticities start to look more
+reasonable as we introduce unobserved heterogeneity into the model. 
+\begin{table}[htbp!]
+  \floatintro{The table shows the own-price and cross-price
+    elasticities of different products using the random coefficients
+    model and the income draws.}
+  \centering
+  \input{./tables/rand_coef_elast_inc_float.gen}
+  \caption{Elasticities from Random Coefficients Model}
+  \label{tab:rc_elas_inc}
+\end{table}
+
+\section*{Question 7}
+Put together a table with the point estimates and standard errors for all
+of your estimates. In the case of 5 and 6, you do not need to compute
+the standard errors for the parameters outside of $\delta$, but do
+report the standard errors on the parameters inside of $\delta$, as
+you do in the exercise 2-4. \\ \Hline\\
+Table \ref{tab:mle_est} reports the maximum likelihood estimation
+results. Table \ref{tab:ols_iv} reports the results from the demand
+side for the OLS and IV models. Table \ref{tab:estimates} reports the
+coefficients estimated from the random coefficients model.
+\begin{table}[htbp!]
+  \floatintro{The table shows the estimates of the parameters using
+    random coefficients model using the BLP specification on 2217
+    observations.}
+  \centering
+  \begin{tabular}{lrrrrr}
+    \hline
+    Demand Side & Variable & \multicolumn{2}{r}{No Demographics} &
+                                                                   \multicolumn{2}{r}{With Demographics} \\
+    \hline
+                &  & Parameter & Std Error & Parameter & Std Error \\ \hline
+    Mean ($\bar \beta$)s & Constant & -9.261 & 1.444 & -10.587 & 1.186 \\
+                & HP/Weight & 4.269 & 1.358 & 5.232 & 1.090 \\
+                & Air & 0.140 & 0.918 & -1.612 & 3.039 \\
+                & MPD & -0.314 & 0.343 & 0.004 & 0.404 \\
+                & Size & 0.453 & 0.825 & 0.525 & 0.862 \\
+    Std. Deviations ($\sigma_{\beta}$)s & Constant & 3.644 & 0.883 & -1.782 & 0.816 \\
+                & HP/Weight & -0.535 & 2.895 & 1.832 & 1.093 \\
+                & Air & 1.910 & 1.011 & -3.752 & 2.419 \\
+                & MPD & 0.305 & 0.330 & 0.436 & 0.420 \\
+                & Size & 2.840 & 0.436 & -2.154 & 0.560 \\
+    Term on Price & $\log(y-p)$ &  &  & -0.238 & 0.031 \\ 
+    \hline
+  \end{tabular}
+  \caption{Estimated parameters of the demand equation - Random
+    Coefficients Model}
+  \label{tab:estimates}
+\end{table}
+
+\newpage
+\bibliography{IOpapers}
+
 \end{document}
