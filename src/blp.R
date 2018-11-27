@@ -30,13 +30,70 @@ log_ll <- function(theta, y=y, X=X, Z=Z){
 }
 
 # Constructing the variables
+## marks <- temp %>%
+##     group_by(firmid) %>%
+##     transmute(shares=sum(market_share))
+## sum.share <- unique(temp$sum_shares)
+## out.share <- unique(temp$outside_shares)
 y <- temp$market_share
 X  <- as.matrix(temp[, c("cons", "horsepower_weight", "ac_standard", "miles_per_dollar", "length_width", "price")])
 Z <- temp$outside_shares
 # Maximum likelihood estimation
 mle.res <- optim(par=c(-10,-0.12,-0.03, 0.26,2.34,-0.088), fn=log_ll, method="Nelder-Mead", y=y, X=X, Z=Z, hessian=TRUE)
+mle.se <- sqrt(diag(mle.res$hessian))
 
-mle.res2 <- optim(par=rep(1,6), fn=log_ll, method="Nelder-Mead", y=y, X=X, Z=Z, hessian=TRUE)
+mle.results <- data.frame(Coefficient=mle.res$par, StdError=mle.se)
+rownames(mle.results) <- c("(Intercept)", "HP/Wt", "Air", "MPD", "Size", "Price")
+# Generating LaTeX table
+genxtable(xtable(mle.results, align="lrr", digits=c(0, rep(4,2))), basename="mle_est", include.rownames=TRUE)
+
+# Calculating the elasticities
+coef.mle <- as.numeric(mle.results[,1])
+names(coef.mle) <- c("(Intercept)", "horsepower_weight", "ac_standard", "miles_per_dollar", "length_width", "price")
+dat <- temp[which(temp$vehicle_name %in% cars & temp$year == 90), ]
+dat$vehicle_name <- as.character(dat$vehicle_name)
+dat <- dat[, c("vehicle_name", "year", "market_share", "price")]
+# Getting the price estimates from the regression object
+price_est <- coef.mle["price"]
+# Calculate own price elasticites
+dat.vnm  <- split(dat, dat$vehicle_name)
+own_price <- do.call(rbind, lapply(dat.vnm, function(x){
+        ope <- round(price_est* x$price *(1-x$market_share),digits=5)
+        return(ope)
+    }))
+# Calculate cross price elasticities
+cross_price <- lapply(dat.vnm, function(x){
+        k <- dat.vnm[which(names(dat.vnm) != x$vehicle_name)]
+        cpe <- do.call(rbind, lapply(k, function(y){
+            cpe <- round(-price_est*y$price*y$market_share, digits=5)
+            return(cpe)
+        }))
+        cpe <- data.frame(cpe)
+        cpe$vehicle_name <- rownames(cpe)
+        rownames(cpe) <- NULL
+        return(cpe)
+    })
+nn <- names(cross_price)
+for(i in 1:length(cross_price)){
+        colnames(cross_price[[i]])[1] <- nn[i]
+    }
+elasticity <- Reduce(function(x, y) merge(x, y, all=T, by.x="vehicle_name",
+                                              by.y="vehicle_name"), cross_price)
+elasticity <- data.frame(elasticity)
+rownames(elasticity) <- elasticity[, 1]
+elasticity[, 1] <- NULL
+# Fill in the diagonal elements
+elasticity <- as.matrix(elasticity)
+diag(elasticity) <- own_price
+elasticities <- elasticity
+# Writing the car names for generating LaTeX tables
+rownames(elasticities) <- car.names[match(rownames(elasticities), car.names$vehicle_name), "name"]
+colnames(elasticities) <- car.names[match(colnames(elasticities), car.names$vehicle_name), "name"]
+# Generating the LaTeX table
+genxtable(xtable(elasticities, align="lrrrrr", digits=c(0,rep(5,5))), basename="mle_elast", include.rownames=TRUE)
+
+# Trying alternate guess (doesn't work) - sensitive to the initial guesses
+## mle.res2 <- optim(par=rep(1,6), fn=log_ll, method="Nelder-Mead", y=y, X=X, Z=Z, hessian=TRUE)
 
 # -----------------------Question 3 
 # Replicating Table 1 (with the available variables in the homework)
@@ -62,16 +119,16 @@ linear_demand <- lm(diff_shares~horsepower_weight+ac_standard+
                          miles_per_dollar+length_width+price, data=temp)
 # Part 2. Calculating the price elasticities 
 # Selecting the cars
-cars <- c("HDACCO", "FDESCO", "VWJETT", "VWPASS")
+cars <- c("HDACCO", "FDESCO", "VWJETT", "MB420S", "BW735i")
 # Adding the car names
-car.names <- data.frame(vehicle_name=cars, name=c("Honda Accord", "Ford Escort", "VW Jetta", "VW Passat"))
+car.names <- data.frame(vehicle_name=cars, name=c("Honda Accord", "Ford Escort", "VW Jetta", "Mercedez Benz S420", "BMW 735i"))
 # Get elasticities
 ols_elasticities <- calc_elasticity(obj=linear_demand, cars=cars, data=temp, year=90)
 # Writing the car names for generating LaTeX tables
 rownames(ols_elasticities) <- car.names[match(rownames(ols_elasticities), car.names$vehicle_name), "name"]
 colnames(ols_elasticities) <- car.names[match(colnames(ols_elasticities), car.names$vehicle_name), "name"]
 # Generating the LaTeX table
-genxtable(xtable(ols_elasticities, align="lrrrr", digits=c(0,rep(5,4))), basename="ols_elast", include.rownames=TRUE)
+genxtable(xtable(ols_elasticities, align="lrrrrr", digits=c(0,rep(5,5))), basename="ols_elast", include.rownames=TRUE)
 
 # -----------------------Question 4 
 # Part 1. Construct the instruments 
@@ -132,7 +189,7 @@ iv_elasticities <- calc_elasticity(obj=blpIV, cars=cars, data=correct_blp, year=
 rownames(iv_elasticities) <- car.names[match(rownames(iv_elasticities), car.names$vehicle_name), "name"]
 colnames(iv_elasticities) <- car.names[match(colnames(iv_elasticities), car.names$vehicle_name), "name"]
 # Generating the LaTeX table
-genxtable(xtable(iv_elasticities, align="lrrrr", digits=c(0,rep(5,4))), basename="iv_elast", include.rownames=TRUE)
+genxtable(xtable(iv_elasticities, align="lrrrrr", digits=c(0,rep(5,5))), basename="iv_elast", include.rownames=TRUE)
 
 # Storing the regression results in a LaTeX file
 sink(file="../doc/tables/ols_iv_reg.gen")
@@ -172,7 +229,8 @@ dd <- distinct(correct_blp, vehicle_name, year, .keep_all=TRUE)
 dd$vehicle_name <- as.character(dd$vehicle_name)
 
 # Getting the data ready for BLP estimation
-what <- BLP_data(model=blp_model,
+# Run this only once and FIX it.
+blp_noIncome <- BLP_data(model=blp_model,
          market_identifier="year",
          product_identifier="vehicle_name",
          productData=dd,
@@ -189,19 +247,25 @@ rownames(theta_guesses) <- c("(Intercept)", "horsepower_weight", "ac_standard",
 colnames(theta_guesses)[1] <- "unobs_sd"
 
 # Estimates BLP
-blp_est <- estimateBLP(blp_data=what,
+blp_est <- estimateBLP(blp_data=blp_noIncome,
             par_theta2=theta_guesses,
             solver_method="BFGS", solver_maxit=1000, solver_reltol=1e-6,
             standardError="heteroskedastic",
             extremumCheck=FALSE,
             printLevel=1)
-# Function to get elasticities
 
-get_elasticities(blp_data=what,
+# Function to get elasticities
+rand_coef_elasticity <- get_elasticities(blp_data=blp_noIncome,
                  blp_estimation=blp_est,
                  variable="price",
-                 products=c("HDACCO", "FDESCO", "VWJETT"),
+                 products=sort(cars),
                  market=90)
+
+# Writing the car names for generating LaTeX tables
+rownames(rand_coef_elasticity) <- car.names[match(rownames(rand_coef_elasticity), car.names$vehicle_name), "name"]
+colnames(rand_coef_elasticity) <- car.names[match(colnames(rand_coef_elasticity), car.names$vehicle_name), "name"]
+# Generating the LaTeX table
+genxtable(xtable(rand_coef_elasticity, align="lrrrrr", digits=c(0,rep(5,5))), basename="rand_coef_elast", include.rownames=TRUE)
 
 # -----------------------Question 6
 # Random coefficients model (with income effects)
@@ -214,13 +278,19 @@ incomeMeans <- c(2.01156, 2.06526, 2.07843, 2.05775, 2.02915, 2.05346,
 sigma_v <- 1.72
 # Number of draws
 ns <- 100
-# Drawing random data
+
+# Drawing log-normal random data
 demoDat <- do.call(rbind, lapply(incomeMeans, function(x){
     set.seed(123)
-    k <- rnorm(n=ns, mean=x, sd=sigma_v)
-    return(k)
+    # Adjusting for mean and standard deviation
+    m_x  <- log(x^2/sqrt(sigma_v^2+x^2))
+    sigma_x  <- sqrt(log(1+(sigma_v^2/x^2)))
+    ## k <- rlnorm(n=ns, meanlog=x, sd=sqrt(sigma_v))
+    k <- rlnorm(n=ns, meanlog=m_x, sd=sigma_x)
+    return(1/k)
 }))
 
+# Arranging the data in the format required for the package
 demoDat <- data.frame(demoDat)
 colnames(demoDat) <- paste0("draw_", 1:ncol(demoDat))
 demoDat$year <- unique(correct_blp$year)
@@ -235,15 +305,14 @@ blp_incomeEffect <- BLP_data(model=blp_model,
                              productData=dd,
                              demographic_draws=demoDat,
                              blp_inner_tol=1e-6,
-                             blp_inner_maxit = 5000,
+                             blp_inner_maxit = 1000,
                              integration_method="MLHS",
                              integration_accuracy = ns,
                              integration_seed = 1)
 
 # Start with the guesses
 theta_guesses  <- matrix(c(rep(1,6), rep(1,6)), nrow=6, ncol=2)
-theta_guesses[1,2] <- 0
-
+# theta_guesses <- cbind(rep(0,6), rep(0,6))
 # Write in the names in the correct order
 rownames(theta_guesses) <- c("(Intercept)", "horsepower_weight",
                              "ac_standard", "miles_per_dollar",
@@ -254,7 +323,142 @@ colnames(theta_guesses) <- c("unobs_sd", "income")
 blpEst_incomeEffect <- estimateBLP(blp_data=blp_incomeEffect,
                              par_theta2=theta_guesses,
                              solver_method="BFGS", solver_maxit=1000,
-                             solver_reltol=1e-6,
+                             solver_reltol=1e-2,
                              standardError="heteroskedastic",
-                             extremumCheck=FALSE,
-                             printLevel=1)
+                             extremumCheck=TRUE,
+                             printLevel=1, hessian=FALSE)
+
+rand_coef_elasticityInc <- get_elasticities(blp_data=blp_incomeEffect,
+                 blp_estimation=blpEst_incomeEffect,
+                 variable="price",
+                 products=sort(cars),
+                 market=90)
+
+# Storing in the data for Stata
+write.csv(correct_blp, file="../data/stata_cars.csv")
+
+
+
+mkt.id <- correct_blp[, "year"]
+
+ind_sh <- function(delta.in, mu.in){
+    # This function computes the "individual" probabilities of choosing each brand
+    # Requires global variables: mkt.id, X, v
+    numer <- exp(mu.in) * matrix(rep(exp(delta.in), n.sim), ncol = n.sim);
+    denom <- as.matrix(do.call("rbind", lapply(mkt.id, function(tt){
+        1 + colSums(numer[mkt.id %in% tt, ])
+    })))
+    return(numer / denom);  
+}
+
+
+### Trying other way
+income_means <- c(2.01156, 2.06526, 2.07843, 2.05775, 2.02915,
+                  2.05346, 2.06745, 2.09805, 2.10404, 2.07208,
+                  2.06019, 2.06561, 2.07672, 2.10437, 2.12608,
+                  2.16426, 2.18071, 2.18856, 2.21250, 2.18377)
+
+income_std <- (1.72)
+
+num_draw <- 20
+
+income_draw <- do.call(rbind, lapply(income_means, function(x){
+  income_temp <- rlnorm(n=num_draw, meanlog = income_means, sd = income_std)
+  return(1/income_temp)
+}))
+
+income_row_mean <- rowMeans(income_draw)
+
+income_draw <- income_draw - income_row_mean
+data_iv_distinct <- dd
+income_draw <- data.frame(income_draw)
+colnames(income_draw) <-paste0("draw_", 1:num_draw)
+income_draw$year <- unique(data_iv_distinct$year)
+income_draw <- income_draw[,c(num_draw+1,1:num_draw)]
+income_draw <- list(income_draw)
+
+names(income_draw) <- "price"
+
+# Drawing random coefficient v part #
+constant_draw <- list(matrix(rnorm(20*num_draw, mean = 0, sd = 1),20,num_draw))
+constant_draw <- data.frame(constant_draw)
+colnames(constant_draw) <-paste0("draw_", 1:num_draw)
+constant_draw$year <- unique(data_iv_distinct$year)
+constant_draw <- constant_draw[,c(num_draw+1,1:num_draw)]
+constant_draw <- list(constant_draw)
+
+names(constant_draw) <- "(Intercept)"
+
+horsepower_weight <- list(matrix(rnorm(20*num_draw, mean = 0, sd = 1),20,num_draw))
+horsepower_weight <- data.frame(horsepower_weight)
+colnames(horsepower_weight) <-paste0("draw_", 1:num_draw)
+horsepower_weight$year <- unique(data_iv_distinct$year)
+horsepower_weight <- horsepower_weight[,c(num_draw+1,1:num_draw)]
+horsepower_weight <- list(horsepower_weight)
+
+names(horsepower_weight) <- "horsepower_weight"
+
+length_width <- list(matrix(rnorm(20*num_draw, mean = 0, sd = 1),20,num_draw))
+length_width <- data.frame(length_width)
+colnames(length_width) <-paste0("draw_", 1:num_draw)
+length_width$year <- unique(data_iv_distinct$year)
+length_width <- length_width[,c(num_draw+1,1:num_draw)]
+length_width <- list(length_width)
+
+names(length_width) <- "length_width"
+
+ac_standard <- list(matrix(rnorm(20*num_draw, mean = 0, sd = 1),20,num_draw))
+ac_standard <- data.frame(ac_standard)
+colnames(ac_standard) <-paste0("draw_", 1:num_draw)
+ac_standard$year <- unique(data_iv_distinct$year)
+ac_standard <- ac_standard[,c(num_draw+1,1:num_draw)]
+ac_standard <- list(ac_standard)
+
+names(ac_standard) <- "ac_standard"
+
+miles_per_dollar <- list(matrix(rnorm(20*num_draw, mean = 0, sd = 1),20,num_draw))
+miles_per_dollar <- data.frame(miles_per_dollar)
+colnames(miles_per_dollar) <-paste0("draw_", 1:num_draw)
+miles_per_dollar$year <- unique(data_iv_distinct$year)
+miles_per_dollar <- miles_per_dollar[,c(num_draw+1,1:num_draw)]
+miles_per_dollar <- list(miles_per_dollar)
+
+names(miles_per_dollar) <- "miles_per_dollar"
+
+originalDraws <- c(constant_draw, income_draw, 
+         horsepower_weight, length_width, ac_standard, miles_per_dollar)
+
+
+data_blp_q6 <- BLP_data(model = blp_model,
+                        market_identifier="year",
+                        product_identifier = "vehicle_name",
+                        productData = data_iv_distinct,
+                        blp_inner_tol = 1e-6,
+                        blp_inner_maxit = 5000,
+                        integration_draws = originalDraws, 
+                        integration_weights= rep(1/num_draw,num_draw))
+
+theta_guesses_q6 <- as.matrix(cbind(c(0,0,0,0,0,0)))
+colnames(theta_guesses_q6) <- c("unobs_sd")
+rownames(theta_guesses_q6) <- c("(Intercept)","price", "horsepower_weight", "length_width","ac_standard", "miles_per_dollar")
+
+
+
+blp_q6 <- estimateBLP(blp_data = data_blp_q6,
+                      par_theta2 = theta_guesses_q6,
+                      solver_method = "BFGS", solver_maxit = 1000, solver_reltol = 1e-6,
+                      standardError = "heteroskedastic",
+                      extremumCheck = FALSE ,
+                      printLevel = 1 )
+
+rand_coef_elasticityInc <- get_elasticities(blp_data=data_blp_q6,
+                 blp_estimation=blp_q6,
+                 variable="price",
+                 products=sort(cars),
+                 market=90)
+
+# Writing the car names for generating LaTeX tables
+rownames(rand_coef_elasticityInc) <- car.names[match(rownames(rand_coef_elasticityInc), car.names$vehicle_name), "name"]
+colnames(rand_coef_elasticityInc) <- car.names[match(colnames(rand_coef_elasticityInc), car.names$vehicle_name), "name"]
+# Generating the LaTeX table
+genxtable(xtable(rand_coef_elasticityInc, align="lrrrrr", digits=c(0,rep(5,5))), basename="rand_coef_elast_inc", include.rownames=TRUE)
