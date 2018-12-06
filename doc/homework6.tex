@@ -1,0 +1,94 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=.75in]{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{amssymb} \usepackage{natbib}
+\usepackage{float} \usepackage{appendix}
+\usepackage{hyperref}
+\usepackage{mathrsfs}
+\floatstyle{ruled} \restylefloat{table} \restylefloat{figure}
+\bibliographystyle{unsrtnat}
+
+\newcommand{\floatintro}[1]{
+  
+  \vspace*{0.1in}
+  
+  {\footnotesize
+
+    #1
+    
+  }
+  
+  \vspace*{0.1in} }
+\newcommand{\Hline}{\noindent\rule{18cm}{0.5pt}} \title{Homework 6:
+  Industrial Organisation} \author{Dhananjay Ghei} \date{December 11,
+  2018}
+\begin{document}
+\maketitle
+\textit{N.B. The code for this exercise was written in
+\texttt{R} and is available on my Github
+account. \url{www.github.com/dhananjayghei/io_estimation}.}
+
+\section*{Some basics}
+\begin{enumerate}
+\item Read the data into a statistical package and look at summary
+statistics to convince yourself that the data was read in
+correctly. Try a simple OLS regression of log(QUANTITY) on a constant,
+log(PRICE), LAKES, and (twelve of) the seasonal dummy variables. If
+you were to view this as an estimate of a demand curve what would the
+price elasticity of demand be? Why does this number seem unreasonable?
+\\ \Hline \\
+\item Try doing the regression instead using instrumental variable
+  with the COLLUSION variable as the instrument for PRICE. How does
+  the reported price elasticity change. Is the estimate closer to that
+  in Porter's paper or that in Ellison's paper and why? How do you
+  interpret the coefficient on the LAKES variable? On the seasonal
+  dummies? What is the R-squared of the regression and what do you
+  make of it? \\ \Hline \\
+\item Try the regression with the DM1-DM4 and COLLUSION as instruments
+  for price. Do the estimates ``improve'' in any way? \\ \Hline \\
+\item Estimate a supply equation as in Porter and Ellison using the
+  LAKES variable as an instrument for quantity. What does the
+  magnitude of the coefficient on COLLUSION tell us about the effect
+  of collusion on prices? What might the coefficient on QUANTITY in
+  this regression indicate about the nature of costs in the JEC? \\
+  \Hline \\
+\end{enumerate}
+
+\section*{Model derivation and interpretation}
+\begin{enumerate}
+\item Suppose that rather than the log-log specification of demand
+  you've been using so far, you tried others and found that a linear
+  specification of demand like
+  \begin{align*}
+    Q_t = \alpha_0 + \alpha_1 P_t + \alpha_2 Lakes_t + u_t
+  \end{align*}
+seemed most appropriate. Show that for this demand curve the optimal
+price for a monopolist with a constant marginal cost of $c$ to set is
+\begin{align*}
+  P_t = c - \frac{1}{\alpha_1} Q_t
+\end{align*}
+Given this result, what functional form would you choose for the
+supply curve in this model? \\ \Hline \\
+\item What pricing rule would result with this demand curve if the
+  industry instead consisted of perfectly competitive firms with total
+  costs of the form $c(Q_t) = c_0Q_t + c_1Q_t^2$ setting price equal
+  to marginal cost? Could one use an approach like Porter's to
+  distinguish between these two models of behavior? Talk about why
+  this is an important question. \\ \Hline \\
+\end{enumerate}
+\section*{Causes of price wars}
+\begin{enumerate}
+\item Using the collusion variable generate an indicator variable for
+  the start of a price war. Perform a probit regression with this
+  indicator as a dependent variable and with QUANTITY, LAKES, and
+  DM1-DM4 (or a subset thereof) as explanatory variables. What
+  inferences might you want to draw about whether price wars are more
+  likely to occur in booms from the coefficients on the first two
+  variables? Why are these variables not really the right ones to be
+  using in the equation? \\ \Hline \\
+\end{enumerate}
+% \newpage
+% \bibliography{IOpapers}
+
+\end{document}
