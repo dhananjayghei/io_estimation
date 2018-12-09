@@ -1,5 +1,7 @@
 # Loading the required library
 library(AER) # For IV regression
+library(stargazer) # For LaTeX regression tables
+library(xtable) # For LaTeX tables
 # Reading in the data set
 dat <- read.table("../data/PORTER.PRN")
 # Setting in the column names in order
@@ -36,10 +38,18 @@ iv_collusion_dv <- ivreg(logQ~lakes+seasonal+logP | lakes+seasonal+collusion+d1+
 
 # Estimating the supply equation
 ols_supply <- lm(logP~d1+d2+d3+d4+logQ+collusion, data=dat)
-iv_supply <- ivreg(logP~d1+d2+d3+d4+seasonal+logQ | d1+d2+d3+d4+seasonal+collusion, data=dat)
+# Run IV with lakes as instrument for log quantity
+iv_supply <- ivreg(logP~d1+d2+d3+d4+seasonal+collusion+logQ | d1+d2+d3+d4+seasonal+collusion+lakes, data=dat)
 
+# Storing the regression results (Demand equation)
+sink(file="../doc/tables/porter_demand.gen")
+stargazer(ols, iv_collusion, iv_collusion_dv,
+          type="latex", keep=c("logP", "lakes"),
+          covariate.labels=c("Log(Price)", "Lakes"),
+          floating=FALSE)
+sink()
 
-# Markov-switching regime
-library(MSwM)
+## # Markov-switching regime
+## library(MSwM)
 
-kk <- msmFit(object=ols_supply, k=2, sw=c(rep(TRUE, 7), TRUE), control=list(parallel=FALSE))
+## kk <- msmFit(object=ols_supply, k=2, sw=c(rep(TRUE, 7), TRUE), control=list(parallel=FALSE))
