@@ -166,58 +166,76 @@ incomeMeans <- c(2.01156, 2.06526, 2.07843, 2.05775, 2.02915, 2.05346,
                  2.21250, 2.18377)
 dat$income <- rep(incomeMeans, table(dat$year))
 dat$y_p <- dat$income-dat$price
-
-objQ <- function(theta){
-    beta <- theta[1:5]
-    alpha <- theta[6]
-    pi <- theta[7:15]
-    gamma <- theta[16:20]
-    gammaP <- theta[21]
-    delta <- dat$diff_shares
-    x <- as.matrix(dat[, c("cons", "hpwt", "air", "space", "mpd")])
-    price <- dat[, "price"]
-    yp <- dat$y_p
-    controls <- as.matrix(dat[, c(paste0("V", 1:9))])
-    obj <- mean((delta - x %*% beta - alpha * price + controls %*% pi * (1 + x %*% gamma + gammaP*(yp)))^2)
-    return(-obj)
-}
-
-
-
-
-
-
-
-
-
+dat$YP <- exp(dat$income)-dat$price
 
 # CMRCF
-columnIII <- lm(diff_shares~hpwt*V1+air*V1+mpd*V1+y_p*V1+space*V1+V1+V2+V3+V4+V5+V6+V7+V8+V9, data=dat)
+# Tried doing it with y_p as well. The results don't change much.
+columnIII <- nls(diff_shares~c*cons+beta[1]*hpwt+beta[2]*air+beta[3]*mpd+beta[4]*space+
+              alpha*price+(pi[1]*V1+pi[2]*V2+pi[3]*V3+pi[4]*V4+pi[5]*V5+pi[6]*V6+
+                           pi[7]*V7+pi[8]*V8+pi[9]*V9)*(1+gamma[1]*hpwt+gamma[2]*air+gamma[3]*mpd+
+                                                        gamma[4]*space+gammaP*YP), data=dat,
+          start=list(c=-10, beta=c(2,1,.1,2), alpha=-.23,
+                     pi=c(3,-1,.04,-.7,.1,1.1,-.08,.3,-.1), gamma=c(.9,.4,-.04,.2), gammaP=-.02),
+          control=list(maxiter=1000, tol=1e-06))
 
 # Getting the elasticities
 dat90 <- dat[which(dat$year==90), ]
 
-# For OLS regression (No interations)
+# For OLS regression (No interactions)
 # Full data set
 ols.elas <- coef(columnI)["price"]*dat$price*(1-dat$market_share)
-sum_elas(ols.elas)
+ols <- sum_elas(ols.elas)
 # For 1990 only
 ols.elas90 <- coef(columnI)["price"]*dat90$price*(1-dat90$market_share)
-sum_elas(ols.elas90)
+ols90 <- sum_elas(ols.elas90)
 # For IV regression (No interactions)
 # Full data set
 iv.elas <- coef(columnII)["price"]*dat$price*(1-dat$market_share)
-sum_elas(iv.elas)
+iv <- sum_elas(iv.elas)
 # For 1990 only
 iv.elas90 <- coef(columnII)["price"]*dat90$price*(1-dat90$market_share)
-sum_elas(iv.elas90)
+iv90 <- sum_elas(iv.elas90)
+# For CMRCF
+cmrcf.elas <- coef(columnIII)["alpha"]*dat$price*(1-dat$market_share)
+cmrcf <- sum_elas(cmrcf.elas)
+# For 1990 only
+cmrcf.elas90 <- coef(columnIII)["alpha"]*dat90$price*(1-dat90$market_share)
+cmrcf90 <- sum_elas(cmrcf.elas90)
+
 
 # BLP Table VI
 cars <- c("MZ323", "HDACCO", "ACLEGE", "BW735i")
 blp <- dat[which(dat$year==90 & dat$vehicle_name %in% cars), ]
 blp.ols <- round(coef(columnI)["price"]*blp$price*(1-blp$market_share),2)
 blp.iv <- round(coef(columnII)["price"]*blp$price*(1-blp$market_share),2)
+blp.cmrcf <- round(coef(columnIII)["alpha"]*blp$price*(1-blp$market_share),2)
 
+# Generating LaTeX table
+# Results for 1971-1990
+fullDat <- data.frame(cbind(ols, iv, cmrcf))
+colnames(fullDat) <- c("OLS", "IV", "CMRCF")
+# Elasticities from 1990
+latestDat <- data.frame(cbind(ols90, iv90, cmrcf90))
+colnames(latestDat) <- c("OLS", "IV", "CMRCF")
+# 1990 Models (from BLP, Table  VI)
+blpDat <- data.frame(cbind(blp.ols, blp.iv, blp.cmrcf))
+cars <- data.frame(code=cars, name=c("Mazda 323", "Honda Accord", "Acura Legend", "BMW 735i"))
+rownames(blpDat) <- cars$name
+colnames(blpDat) <- colnames(fullDat)
+# Create an empty row
+rows <- data.frame(OLS=NA, IV=NA, CMRCF=NA)
+cols <- matrix(nrow=14, ncol=1)
+tab2 <- data.frame(cbind(cols, rbind(fullDat, rows, latestDat, rows, blpDat)))
+tab2$cols <- c(rownames(fullDat), "Elasticities from 1990", rownames(fullDat), "1990 Models (from BLP)",
+               as.character(cars$name))
+rownames(tab2) <- NULL
+tab2[nrow(tab2)+1, ] <- c("Interactions", "No", "No", "Yes")
+tab2 <- tab2[c(nrow(tab2), 1:nrow(tab2)-1), ]
+colnames(tab2)[1] <- "Elasticities"
+
+print(xtable(tab2, align="llrrr"), type="latex", include.rownames=FALSE, table.placement="tp",
+      hline.after=c(-1,0,5,10, nrow(tab2)), floating=FALSE,
+      file="../doc/tables/gkp_table2.gen")
 
 # Write summary stats
 sum_elas <- function(tab){
@@ -230,7 +248,7 @@ sum_elas <- function(tab){
     tb <- rbind(tb, no_inelastic)
     tb <- round(tb, 2)
     rownames(tb) <- c("Median", "Mean", "Standard Deviation",
-                      "No. of inelastic Demands")
+                      "Percent of Inelastic Demands")
     tb <- data.frame(tb)
     return(tb)
 }
