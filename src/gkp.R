@@ -220,14 +220,14 @@ colnames(latestDat) <- c("OLS", "IV", "CMRCF")
 # 1990 Models (from BLP, Table  VI)
 blpDat <- data.frame(cbind(blp.ols, blp.iv, blp.cmrcf))
 cars <- data.frame(code=cars, name=c("Mazda 323", "Honda Accord", "Acura Legend", "BMW 735i"))
-rownames(blpDat) <- cars$name
+rownames(blpDat) <- cars[c(3,4,2,1), ]$name
 colnames(blpDat) <- colnames(fullDat)
 # Create an empty row
 rows <- data.frame(OLS=NA, IV=NA, CMRCF=NA)
 cols <- matrix(nrow=14, ncol=1)
 tab2 <- data.frame(cbind(cols, rbind(fullDat, rows, latestDat, rows, blpDat)))
 tab2$cols <- c(rownames(fullDat), "Elasticities from 1990", rownames(fullDat), "1990 Models (from BLP)",
-               as.character(cars$name))
+               rownames(blpDat))
 rownames(tab2) <- NULL
 tab2[nrow(tab2)+1, ] <- c("Interactions", "No", "No", "Yes")
 tab2 <- tab2[c(nrow(tab2), 1:nrow(tab2)-1), ]
