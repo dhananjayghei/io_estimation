@@ -159,9 +159,40 @@ dat$V9 <- resid(lm(rival.xi.cube~hpwt+air+mpd+space+own_firm_hpIV+
 
 colnames(dat)[24:26]  <- c("V1", "V4", "V7")
 
+# Adding the income means
+incomeMeans <- c(2.01156, 2.06526, 2.07843, 2.05775, 2.02915, 2.05346,
+                 2.06745, 2.09805, 2.10404, 2.07208, 2.06019, 2.06561,
+                 2.07672, 2.10437, 2.12608, 2.16426, 2.18071, 2.18856,
+                 2.21250, 2.18377)
+dat$income <- rep(incomeMeans, table(dat$year))
+dat$y_p <- dat$income-dat$price
+
+objQ <- function(theta){
+    beta <- theta[1:5]
+    alpha <- theta[6]
+    pi <- theta[7:15]
+    gamma <- theta[16:20]
+    gammaP <- theta[21]
+    delta <- dat$diff_shares
+    x <- as.matrix(dat[, c("cons", "hpwt", "air", "space", "mpd")])
+    price <- dat[, "price"]
+    yp <- dat$y_p
+    controls <- as.matrix(dat[, c(paste0("V", 1:9))])
+    obj <- mean((delta - x %*% beta - alpha * price + controls %*% pi * (1 + x %*% gamma + gammaP*(yp)))^2)
+    return(-obj)
+}
+
+
+
+
+
+
+
+
+
 
 # CMRCF
-columnIII <- lm(diff_shares~hpwt*V1+air*V1+mpd*V1+space*V1+V1+V2+V3+V4+V5+V6+V7+V8+V9, data=dat)
+columnIII <- lm(diff_shares~hpwt*V1+air*V1+mpd*V1+y_p*V1+space*V1+V1+V2+V3+V4+V5+V6+V7+V8+V9, data=dat)
 
 
 
