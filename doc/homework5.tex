@@ -1,0 +1,49 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=.75in]{geometry}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{amssymb} \usepackage{natbib}
+\usepackage{float} \usepackage{appendix}
+\usepackage{hyperref}
+\usepackage{mathrsfs}
+\floatstyle{ruled} \restylefloat{table} \restylefloat{figure}
+\bibliographystyle{unsrtnat}
+
+\newcommand{\floatintro}[1]{
+  
+  \vspace*{0.1in}
+  
+  {\footnotesize
+
+    #1
+    
+  }
+  
+  \vspace*{0.1in} }
+\newcommand{\Hline}{\noindent\rule{18cm}{0.5pt}} \title{Homework 5:
+  Industrial Organisation} \author{Dhananjay Ghei} \date{December 11,
+  2018}
+\begin{document}
+\maketitle
+\textit{N.B. The code for this exercise was written in
+\texttt{R} and is available on my Github
+account. \url{www.github.com/dhananjayghei/io_estimation}.}\\
+Problems 1 and 2 use the automobile data from Berry-Levinsohn-Pakes
+(1995). This data already accounts for the outside good (sum shares in
+any year and they will be less than one.)
+\section*{Question 1}
+Replicate as closely as you can column 1-3 from GKP. Produce a table
+that looks similar and fill in with the results that you find. For
+column 3 do not worry about correcting standard errors for first two
+stages of estimation (i.e. just use results from non-linear least
+squares search). They will differ from results reported in the paper
+which are corrected for the first two stages of estimation. \\ \Hline \\
+Note that, columns I and II from GKP are the same as the ones in
+BLP homework. 
+\section*{Question 2}
+Reproduce Table 2 using your preferred estimates from column 3 of
+Table 1 of your results. \\ \Hline \\
+% \newpage
+% \bibliography{IOpapers}
+
+\end{document}
