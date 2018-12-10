@@ -50,7 +50,7 @@ stargazer(ols, type="latex", float=FALSE, keep=1:3)
 # Storing the regression results (Demand equation)
 sink(file="../doc/tables/porter_demand.gen")
 stargazer(ols, iv_collusion, iv_collusion_dv,
-          type="latex", covariate.labels=c("Constant", "Log(Price)", "Lakes", paste0("SEAS", 1:12)),
+          type="latex", covariate.labels=c("Constant", "Log(Price)", "Lakes", paste0("SEAS", 2:13)),
           column.labels=c("OLS", "IV", "IV"), intercept.bottom=FALSE, dep.var.labels="",
           model.names=FALSE,
           float=FALSE)
@@ -59,7 +59,7 @@ sink()
 # Storing the regrssion results (Supply equation)
 sink(file="../doc/tables/porter_supply.gen")
 stargazer(ols_supply, iv_supply,
-          type="latex", covariate.labels=c("Constant", paste0("D", 1:4), paste0("SEAS", 1:12),
+          type="latex", covariate.labels=c("Constant", paste0("D", 1:4), paste0("SEAS", 2:13),
                                            "Collusion", "Log(Quantity)"),
           column.labels=c("OLS", "IV"), intercept.bottom=FALSE, dep.var.labels="",
           model.names=FALSE,
