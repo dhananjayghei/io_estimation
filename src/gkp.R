@@ -194,11 +194,46 @@ objQ <- function(theta){
 # CMRCF
 columnIII <- lm(diff_shares~hpwt*V1+air*V1+mpd*V1+y_p*V1+space*V1+V1+V2+V3+V4+V5+V6+V7+V8+V9, data=dat)
 
+# Getting the elasticities
+dat90 <- dat[which(dat$year==90), ]
+
+# For OLS regression (No interations)
+# Full data set
+ols.elas <- coef(columnI)["price"]*dat$price*(1-dat$market_share)
+sum_elas(ols.elas)
+# For 1990 only
+ols.elas90 <- coef(columnI)["price"]*dat90$price*(1-dat90$market_share)
+sum_elas(ols.elas90)
+# For IV regression (No interactions)
+# Full data set
+iv.elas <- coef(columnII)["price"]*dat$price*(1-dat$market_share)
+sum_elas(iv.elas)
+# For 1990 only
+iv.elas90 <- coef(columnII)["price"]*dat90$price*(1-dat90$market_share)
+sum_elas(iv.elas90)
+
+# BLP Table VI
+cars <- c("MZ323", "HDACCO", "ACLEGE", "BW735i")
+blp <- dat[which(dat$year==90 & dat$vehicle_name %in% cars), ]
+blp.ols <- round(coef(columnI)["price"]*blp$price*(1-blp$market_share),2)
+blp.iv <- round(coef(columnII)["price"]*blp$price*(1-blp$market_share),2)
 
 
-
-
-
+# Write summary stats
+sum_elas <- function(tab){
+    N <- length(tab)
+    # Calculating the mean, median, and sd
+    tb <- rbind(median(tab), mean(tab), sd(tab))
+    # Number of inelastic demands
+    inelastic <- sum(as.numeric(abs(tab)<1))
+    no_inelastic <- inelastic*100/N
+    tb <- rbind(tb, no_inelastic)
+    tb <- round(tb, 2)
+    rownames(tb) <- c("Median", "Mean", "Standard Deviation",
+                      "No. of inelastic Demands")
+    tb <- data.frame(tb)
+    return(tb)
+}
 
 
 
