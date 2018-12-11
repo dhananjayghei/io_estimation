@@ -1,0 +1,12 @@
+% latex table generated in R 3.4.4 by xtable 1.8-2 package
+% Mon Dec 10 14:35:45 2018
+\begin{tabular}{lrrrr}
+  \hline
+ & Mean & Sdev & Min & Max \\ 
+  \hline
+Price & 0.246 & 0.067 & 0.125 & 0.400 \\ 
+  Quantity & 25384.000 & 11633.000 & 4810.000 & 76407.000 \\ 
+  Lakes & 0.573 & 0.495 & 0.000 & 1.000 \\ 
+  Collusion & 0.619 & 0.486 & 0.000 & 1.000 \\ 
+   \hline
+\end{tabular}

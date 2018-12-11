@@ -1,0 +1,25 @@
+% latex table generated in R 3.4.4 by xtable 1.8-2 package
+% Mon Dec 10 17:34:12 2018
+\begin{tabular}{lrrr}
+  \hline
+Elasticities & OLS & IV & CMRCF \\ 
+  \hline
+Interactions & No & No & Yes \\ 
+  Median & -0.77 & -1.18 & -2.03 \\ 
+  Mean & -1.04 & -1.59 & -2.73 \\ 
+  Standard Deviation & 0.77 & 1.17 & 2.01 \\ 
+  Percent of Inelastic Demands & 67.75 & 33.65 & 0.36 \\ 
+   \hline
+Elasticities from 1990 &  &  &  \\ 
+  Median & -0.94 & -1.43 & -2.45 \\ 
+  Mean & -1.24 & -1.9 & -3.26 \\ 
+  Standard Deviation & 0.84 & 1.28 & 2.2 \\ 
+  Percent of Inelastic Demands & 52.67 & 19.85 & 0.76 \\ 
+   \hline
+1990 Models (from BLP) &  &  &  \\ 
+  Acura Legend & -1.68 & -2.57 & -4.4 \\ 
+  BMW 735i & -3.32 & -5.09 & -8.71 \\ 
+  Honda Accord & -0.82 & -1.26 & -2.15 \\ 
+  Mazda 323 & -0.45 & -0.69 & -1.17 \\ 
+   \hline
+\end{tabular}

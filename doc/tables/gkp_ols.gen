@@ -1,0 +1,40 @@
+
+% Table created by stargazer v.5.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
+% Date and time: Mon, Dec 10, 2018 - 06:05:23  CST
+\begin{tabular}{@{\extracolsep{5pt}}lcc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{2}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-3} 
+\\[-1.8ex] & \multicolumn{2}{c}{} \\ 
+ & OLS & 2SLS \\ 
+\\[-1.8ex] & (1) & (2)\\ 
+\hline \\[-1.8ex] 
+ Constant & $-$10.072$^{***}$ & $-$9.915$^{***}$ \\ 
+  & (0.253) & (0.263) \\ 
+  & & \\ 
+ HP/Weight & $-$0.124 & 1.226$^{***}$ \\ 
+  & (0.277) & (0.404) \\ 
+  & & \\ 
+ Air & $-$0.034 & 0.486$^{***}$ \\ 
+  & (0.073) & (0.133) \\ 
+  & & \\ 
+ MPD & 0.265$^{***}$ & 0.172$^{***}$ \\ 
+  & (0.043) & (0.049) \\ 
+  & & \\ 
+ Size & 2.342$^{***}$ & 2.292$^{***}$ \\ 
+  & (0.125) & (0.129) \\ 
+  & & \\ 
+ Price & $-$0.089$^{***}$ & $-$0.136$^{***}$ \\ 
+  & (0.004) & (0.011) \\ 
+  & & \\ 
+\hline \\[-1.8ex] 
+Observations & 2,217 & 2,217 \\ 
+R$^{2}$ & 0.387 & 0.349 \\ 
+Adjusted R$^{2}$ & 0.386 & 0.348 \\ 
+Residual Std. Error (df = 2211) & 1.083 & 1.116 \\ 
+F Statistic & 279.243$^{***}$ (df = 5; 2211) &  \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{2}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
