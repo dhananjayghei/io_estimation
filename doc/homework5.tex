@@ -1,13 +1,9 @@
 \documentclass[11pt,letterpaper]{article}
-\usepackage[margin=.75in]{geometry}
-\usepackage{amsmath}
-\usepackage{graphicx}
-\usepackage{amssymb} \usepackage{natbib}
-\usepackage{float} \usepackage{appendix}
-\usepackage{hyperref}
-\usepackage{mathrsfs}
-\floatstyle{ruled} \restylefloat{table} \restylefloat{figure}
-\bibliographystyle{unsrtnat}
+\usepackage[margin=.75in]{geometry} \usepackage{amsmath}
+\usepackage{graphicx} \usepackage{amssymb} \usepackage{natbib}
+\usepackage{float} \usepackage{appendix} \usepackage{hyperref}
+\usepackage{mathrsfs} \floatstyle{ruled} \restylefloat{table}
+\restylefloat{figure} \bibliographystyle{unsrtnat}
 
 \newcommand{\floatintro}[1]{
   
@@ -19,15 +15,14 @@
     
   }
   
-  \vspace*{0.1in} }
-\newcommand{\Hline}{\noindent\rule{18cm}{0.5pt}} \title{Homework 5:
-  Industrial Organisation} \author{Dhananjay Ghei} \date{December 11,
-  2018}
+  \vspace*{0.1in} } \newcommand{\Hline}{\noindent\rule{18cm}{0.5pt}}
+\title{Homework 5: Industrial Organisation} \author{Dhananjay Ghei}
+\date{December 11, 2018}
 \begin{document}
 \maketitle
-\textit{N.B. The code for this exercise was written in
-\texttt{R} and is available on my Github
-account. \url{www.github.com/dhananjayghei/io_estimation}.}\\
+\textit{N.B. The code for this exercise was written in \texttt{R} and
+  is available on my Github
+  account. \url{www.github.com/dhananjayghei/io_estimation}.}\\
 Problems 1 and 2 use the automobile data from Berry-Levinsohn-Pakes
 (1995). This data already accounts for the outside good (sum shares in
 any year and they will be less than one.)
@@ -44,7 +39,7 @@ same as the ones in BLP homework. I construct the instruments in the
 same way as in the previous homework. Once again, note that the
 instruments are constructed correctly. Table \ref{tab:gkp1} shows the
 results of OLS and 2SLS regression on the automobile data set. These
-columns are the same as in Table I of BLP.
+columns are the same as in Table I of GKP.
 
 Next, I construct the $\xi$ variable and use these to construct
 $\xi_{(1)}$ and $\xi_{(2)}$ in the same way as in GKP by refining the
@@ -58,8 +53,15 @@ controls as follows:
   V_7 = \xi_{(2)} && V_8 = \xi_{(2)}^2 - E[\xi_{(2)}^2|Z_j] &&
                                                                V_9 = \xi_{(2)}^3 - E[\xi_{(2)}^3 | Z_j]
 \end{align*}
-Using these controls and the income means, I run the regression as in
-CMRCF using the non-linear least squares search.
+Using these controls and the income means\footnote{I used the income
+  means as the ones given in the previous homework.}, I run the
+regression as in CMRCF using the non-linear least squares
+search. Table \ref{tab:gkp2} shows the results from CMRCF
+estimation. I estimated the coefficients using non-linear least
+squares. The coefficients for the product characteristics are similar
+to the ones in column III of GKP whereas the coefficients for the
+controls and the interaction terms do not look similar to the ones in
+the paper, perhaps because of the income mean term.
 
 \begin{table}[htbp!]
   \floatintro{The table shows the results from OLS and 2SLS estimation
@@ -88,16 +90,21 @@ Reproduce Table 2 using your preferred estimates from column 3 of
 Table 1 of your results. \\ \Hline \\
 Table \ref{tab:gkp3} shows the results of elasticity from OLS, 2SLS
 and CMRCF as in Table II of GKP. In the OLS case, I was able to
-replicate the median and the percent of inelastic demands for OLS from
-the full data set. In the data set for the year 1990, I was able to
-replicate the median and the percent of inelastic demand as well.
-Moving to the 2SLS case, I was able to replicate the median, mean,
-standard deviation from the GKP paper for both the fill data set and
-the data set from 1990s. Finally, moving to the CMRCF case, I was able
+replicate the median, mean, standard deviation and the percent of
+inelastic demands for OLS from the full data set. In the data set for
+the year 1990, I was able to replicate the median, mean, standard
+deviation and the percent of inelastic demand as well.  Moving to the
+2SLS case, I was able to replicate the median, mean, standard
+deviation from the GKP paper for both the full data set and the data
+set from 1990s. However, I get that the percent of inelastic demands
+in the 2SLS case for the full data is 33.65\% (compared to the 21\%
+from GKP Table II) and for the 1990 data is 19.85\% (compared to the
+12\% from GKP Table II). Finally, moving to the CMRCF case, I was able
 to replicate similar numbers for the median and mean for the full data
 set. The other numbers are slightly off but in the same ballpark as
 the estimates of GKP (except for the percent of inelastic demands,
-which turns out to be pretty low in my case).
+which turns out to be pretty low in my case for both the full data set
+and the 1990 data set).
 \begin{table}
   \centering
   \input{./tables/gkp_table2.gen}
@@ -107,9 +114,10 @@ which turns out to be pretty low in my case).
 \end{table}
 Table \ref{tab:gkp3} also reports the elasticities for the 1990 Models
 as in BLP Table VI. I was able to replicate the correct elasticities
-for these cars from the OLS and 2SLS regressions.
+for these cars from the OLS and 2SLS regressions. The elasticities
+have the right sign and are of similar magnitude when I compare my
+CMRCF estimation with that from the paper.
 
-\newpage
 \bibliography{IOpapers}
 
 \end{document}
