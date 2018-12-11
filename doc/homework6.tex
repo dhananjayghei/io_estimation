@@ -83,8 +83,9 @@ estimate of elasticity to be biased towards zero.
   price.  The interpretation on the seasonal dummies is similar to the
   one for lakes. In fact, there are some seasonal dummies which show
   statistical significance.  In the IV case, the R-square coefficients
-  do not hold much significance. This is the reason we do not get an
-  F-stat for the two regressions.
+  do not hold much significance as the IV equation is an estimating
+  equation and not the structural equation. This is the reason we do
+  not get an F-stat for the two regressions.
 
 \item Try the regression with the DM1-DM4 and COLLUSION as instruments
   for price. Do the estimates ``improve'' in any way? \\ \Hline \\
@@ -113,13 +114,14 @@ estimate of elasticity to be biased towards zero.
   Table \ref{tab:supply} shows the estimation of supply equation using
   OLS and IV where the lakes variables is used as an instrument for
   quantity.  The coefficient on collusion in the case of IV is
-  0.368. Thus, the ratio of prices is equal to $\exp(.368) = 1.44$ and
-  therefore, the prices are 44\% higher in collusion. If you compare
+  0.43. Thus, the ratio of prices is equal to $\exp(.430) = 1.537$ and
+  therefore, the prices are 54\% higher in collusion. If you compare
   the results from Column II of Table \ref{tab:supply} with Column II
   of Table III from Porter, they are pretty similar even though we do
   not have the estimated dummy variable as in Porter. The coefficient
-  on quantity is $0.253$ which is positive but not statistically
-  significant.
+  on quantity is $.485$ which is positive and statistically
+  significant. This could suggest that there is either increasing
+  marginal costs or misspecification in the system.
   \begin{table}
     \floatintro{The table shows the supply side estimation using OLS and
       instrumental variable estimation. Column I shows the results of OLS,
@@ -147,6 +149,7 @@ estimate of elasticity to be biased towards zero.
   \begin{align*}
     P_t = c - \frac{1}{\alpha_1} Q_t
   \end{align*}
+  where, $\alpha_1 \leq 0$.
   Given this result, what functional form would you choose for the
   supply curve in this model? \\ \Hline \\
   The monopolist will solve:
@@ -156,7 +159,12 @@ estimate of elasticity to be biased towards zero.
   The first order condition is given by:
   $(p-c) \frac{\partial Q}{\partial p} + Q = 0$. From the demand
   function, we know that $\frac{\partial Q}{\partial p} = \alpha_1$,
-  so we have $p = c - \frac{1}{\alpha}Q$.
+  so we have $p = c - \frac{1}{\alpha}Q$. The appropriate functional
+  form for the supply curve will be:
+  \begin{align*}
+    p = \beta_0 + \beta_1 Q
+  \end{align*}
+  where, $\beta_1 = -\frac{1}{\alpha}$.
 \item What pricing rule would result with this demand curve if the
   industry instead consisted of perfectly competitive firms with total
   costs of the form $c(Q_t) = c_0Q_t + c_1Q_t^2$ setting price equal
@@ -165,7 +173,32 @@ estimate of elasticity to be biased towards zero.
   this is an important question. \\ \Hline \\
   If the industry was perfectly competitive, then the firms would
   price at marginal cost. Therefore, the supply equation will be:
-  $p_t = c_0 + 2c_1Q_t$.
+  $p_t = c_0 + 2c_1Q_t$ which is derived from the firm's first order
+  condition.  Note that both the monopoly pricing solution and the
+  supply equation from the perfect competitive are increasing and
+  linear in $Q$. Thus, we can not tell them apart if we were doing
+  standard estimation.\\
+  Porter's approach works here if we assume that there was enough
+  variation in the conduct of firms and we have an indicator for
+  it. That is, we have the collusion variable in our
+  model.\\
+  Recall, that Porter's approach was to add the indicator variable
+  ($I_t$, collusion - which is observable in his case.) which
+  distinguishes between the monopoly pricing and the perfectly
+  competitive supply:
+  \begin{align*}
+    p_t = \beta_0 + \beta_1 Q_t = \beta_3 I_t+ u_t
+  \end{align*}
+  Alternatively, one could also estimate it using a hidden
+  Markov structure using Ellison given that we assume that there were
+  only two (or, three) states in the sample.\\
+  This is an important question, because we have an indicator variable
+  that gives evidence of change in conduct. Without it, the
+  identification between the monopoly and perfect competition will be
+  difficult unless we make assumptions on the cost structure (which is
+  not common to do in the literature) or have an additional variable which
+  would impact the monopolist's decision but not of the perfectly
+  competitive to identify the differences in the two regimes.
 \end{enumerate}
 \section*{Causes of price wars}
 \begin{enumerate}

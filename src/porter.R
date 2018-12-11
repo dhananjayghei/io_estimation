@@ -43,9 +43,7 @@ iv_collusion_dv <- ivreg(logQ~lakes+seasonal+logP | lakes+seasonal+collusion+d1+
 # Estimating the supply equation
 ols_supply <- lm(logP~d1+d2+d3+d4+collusion+logQ, data=dat)
 # Run IV with lakes as instrument for log quantity
-iv_supply <- ivreg(logP~d1+d2+d3+d4+seasonal+collusion+logQ | d1+d2+d3+d4+seasonal+collusion+lakes, data=dat)
-
-stargazer(ols, type="latex", float=FALSE, keep=1:3)
+iv_supply <- ivreg(logP~d1+d2+d3+d4+collusion+logQ | d1+d2+d3+d4+collusion+lakes, data=dat)
 
 # Storing the regression results (Demand equation)
 sink(file="../doc/tables/porter_demand.gen")
@@ -59,7 +57,7 @@ sink()
 # Storing the regrssion results (Supply equation)
 sink(file="../doc/tables/porter_supply.gen")
 stargazer(ols_supply, iv_supply,
-          type="latex", covariate.labels=c("Constant", paste0("D", 1:4), paste0("SEAS", 2:13),
+          type="latex", covariate.labels=c("Constant", paste0("D", 1:4),
                                            "Collusion", "Log(Quantity)"),
           column.labels=c("OLS", "IV"), intercept.bottom=FALSE, dep.var.labels="",
           model.names=FALSE,
