@@ -68,6 +68,17 @@ columnII <- ivreg(diff_shares~hpwt+air+mpd+space+price | hpwt+air+mpd+space+own_
                       rival_firm_consIV, data=dat)
 
 
+# Storing the regression results for Column I and II
+sink(file="../doc/tables/gkp_ols.gen")
+stargazer(columnI, columnII, type="latex",
+          dep.var.labels="",
+          model.names=FALSE,
+          column.labels=c("OLS", "2SLS"),
+          covariate.labels=c("Constant", "HP/Weight", "Air", "MPD", "Size", "Price"),
+          intercept.bottom=FALSE, float=FALSE)
+sink()
+
+
 
 
 # Try to get the wrong instruments (one last time)
@@ -177,6 +188,42 @@ columnIII <- nls(diff_shares~c*cons+beta[1]*hpwt+beta[2]*air+beta[3]*mpd+beta[4]
           start=list(c=-10, beta=c(2,1,.1,2), alpha=-.23,
                      pi=c(3,-1,.04,-.7,.1,1.1,-.08,.3,-.1), gamma=c(.9,.4,-.04,.2), gammaP=-.02),
           control=list(maxiter=1000, tol=1e-06))
+
+
+ss <- summary(columnIII)
+ssC <- ss$coefficients
+colnames(ssC) <- c("coef", "se", "t", "p")
+ssC <- as.data.frame(ssC)
+namesCoef <- c("Constant", "HP/Weight", "Air", "MPD", "Size", "Price", paste0("V", 1:9), "gamma1",
+               "gamma2", "gamma3", "gamma4", "gammaP")
+nCoef <- ssC$coef ; names(nCoef) <- namesCoef
+nSE <- ssC$se ; names(nSE) <- namesCoef
+nT <- ssC$t; names(nT) <- namesCoef
+nP <- ssC$p; names(nP) <- namesCoef
+
+nlsReg <- matrix(nrow=2*length(namesCoef), ncol=2)
+for(i in 2:((nrow(nlsReg)+2)/2)){
+    nlsReg[(2*i-3), 2] <- as.numeric(round(nCoef[i-1], 5))
+    nlsReg[(2*i-2), 2] <- paste("(", round(nSE[i-1], 5), ")", sep="")
+    nlsReg[2*i-3, 1] <- namesCoef[i-1]
+}
+colnames(nlsReg) <- c("Variable", "Estimate")
+nlsReg <- data.frame(nlsReg)
+
+# Printing manual stars
+## kk <- lm(diff_shares~hpwt+air+mpd+space+price+(V1+V2+V3+V4+V5+V6+V7+V8+V9)*(1+hpwt+air+space+mpd+YP), data=dat)
+
+## for(i in 1:nrow(ssC)){
+##     if(ssC[i, ]$p <= .001){
+##         print(paste(as.numeric(round(ssC[i, "coef"], 5)), "***", sep=""))
+##     }else(.001 < ssC[i, ]$p <= 0.05){
+##         print(paste(as.numeric(round(ssC[i, "coef"], 5)), "**", sep=""))
+##     }else(.005 < ssc[i, ]$p <= .01){
+##         print(paste(as.numeric(round(ssC[i, "coef"], 5)), "*", sep=""))
+##     }else{
+##         print(round(ssC[i, "coef"], 5))
+##     }
+## }
 
 # Getting the elasticities
 dat90 <- dat[which(dat$year==90), ]

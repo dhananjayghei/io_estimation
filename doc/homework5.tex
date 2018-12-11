@@ -38,18 +38,66 @@ column 3 do not worry about correcting standard errors for first two
 stages of estimation (i.e. just use results from non-linear least
 squares search). They will differ from results reported in the paper
 which are corrected for the first two stages of estimation. \\ \Hline \\
-Note that, columns I and II from GKP are the same as the ones in
-BLP homework. 
+
+Note that, columns I and II from \citep{GKP}(GKP, hereafter) are the
+same as the ones in BLP homework. I construct the instruments in the
+same way as in the previous homework. Once again, note that the
+instruments are constructed correctly. Table \ref{tab:gkp1} shows the
+results of OLS and 2SLS regression on the automobile data set. These
+columns are the same as in Table I of BLP.
+
+Next, I construct the $\xi$ variable and use these to construct
+$\xi_{(1)}$ and $\xi_{(2)}$ in the same way as in GKP by refining the
+$\xi$ similar to the instruments. Following this, I construct the
+controls as follows:
+\begin{align*}
+  V_1 = \xi && V_2 = \xi^2-E[\xi^2 | Z_{j}] && V_3 = \xi^3 -
+                                               E[\xi^3 | Z_j]\\
+  V_4 = \xi_{(1)} && V_5 = \xi_{(1)}^2 - E[\xi_{(1)}^2 | Z_j]
+                                            && V_6 = \xi_{(1)}^3 - E[\xi_{(1)}^3 | Z_j]\\
+  V_7 = \xi_{(2)} && V_8 = \xi_{(2)}^2 - E[\xi_{(2)}^2|Z_j] &&
+                                                               V_9 = \xi_{(2)}^3 - E[\xi_{(2)}^3 | Z_j]
+\end{align*}
+Using these controls and the income means, I run the regression as in
+CMRCF using the non-linear least squares search.
+\begin{table}
+  \floatintro{The table shows the results from OLS and 2SLS estimation
+    on BLP data set. These tables replicate the columns I and II of
+    Table I from GKP.}
+  \centering
+  \footnotesize{
+    \input{./tables/gkp_ols.gen}}
+  \caption{Estimated Parameters for Automobile Demand (OLS, 2SLS)}
+  \label{tab:gkp1}
+\end{table}
+
 \section*{Question 2}
 Reproduce Table 2 using your preferred estimates from column 3 of
 Table 1 of your results. \\ \Hline \\
+Table \ref{tab:gkp3} shows the results of elasticity from OLS, 2SLS
+and CMRCF as in Table II of GKP. In the OLS case, I was able to
+replicate the median and the percent of inelastic demands for OLS from
+the full data set. In the data set for the year 1990, I was able to
+replicate the median and the percent of inelastic demand as well.
+Moving to the 2SLS case, I was able to replicate the median, mean,
+standard deviation from the GKP paper for both the fill data set and
+the data set from 1990s. Finally, moving to the CMRCF case, I was able
+to replicate similar numbers for the median and mean for the full data
+set. The other numbers are slightly off but in the same ballpark as
+the estimates of GKP (except for the percent of inelastic demands,
+which turns out to be pretty low in my case).
 \begin{table}
   \centering
   \input{./tables/gkp_table2.gen}
   \caption{Automobile elasticities: OLS, 2SLS, CMRCF (with
     interactions)}
+  \label{tab:gkp3}
 \end{table}
-% \newpage
-% \bibliography{IOpapers}
+Table \ref{tab:gkp3} also reports the elasticities for the 1990 Models
+as in BLP Table VI. I was able to replicate the correct elasticities
+for these cars from the OLS and 2SLS regressions.
+
+\newpage
+\bibliography{IOpapers}
 
 \end{document}
