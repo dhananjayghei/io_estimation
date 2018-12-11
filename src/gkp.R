@@ -194,12 +194,19 @@ ss <- summary(columnIII)
 ssC <- ss$coefficients
 colnames(ssC) <- c("coef", "se", "t", "p")
 ssC <- as.data.frame(ssC)
-namesCoef <- c("Constant", "HP/Weight", "Air", "MPD", "Size", "Price", paste0("V", 1:9), "gamma1",
-               "gamma2", "gamma3", "gamma4", "gammaP")
+namesCoef <- c("Constant", "HP/Weight", "Air", "MPD", "Size", "Price",
+               paste0("V", 1:9), "gamma1", "gamma2", "gamma3",
+               "gamma4", "gammaP")
 nCoef <- ssC$coef ; names(nCoef) <- namesCoef
 nSE <- ssC$se ; names(nSE) <- namesCoef
 nT <- ssC$t; names(nT) <- namesCoef
 nP <- ssC$p; names(nP) <- namesCoef
+
+intCoef <- nCoef["V1"]*nCoef[grep("gamma", names(nCoef))]
+intSE <- nSE["V1"]*nSE[grep("gamma", names(nCoef))]
+
+nCoef <- c(nCoef[1:15], intCoef)
+nSE <- c(nSE[1:15], intSE)
 
 nlsReg <- matrix(nrow=2*length(namesCoef), ncol=2)
 for(i in 2:((nrow(nlsReg)+2)/2)){
@@ -209,6 +216,16 @@ for(i in 2:((nrow(nlsReg)+2)/2)){
 }
 colnames(nlsReg) <- c("Variable", "Estimate")
 nlsReg <- data.frame(nlsReg)
+nlsReg$Variable <- as.character(nlsReg$Variable)
+
+nlsReg[seq(31,39,by=2), "Variable"]  <- c("HP/Wt $\\xi$", "Air $\\xi$", "MPD $\\xi$", "Size $\\xi$", "(y-p) $\\xi$")
+
+sink(file="../doc/tables/gkp_cmrcf.gen")
+print(xtable(nlsReg, align="llr"),
+      sanitize.text.function=function(x){x},
+      include.rownames=FALSE, floating=FALSE,
+      hline.after=c(-1,0,12,30,nrow(nlsReg)))
+sink()
 
 # Printing manual stars
 ## kk <- lm(diff_shares~hpwt+air+mpd+space+price+(V1+V2+V3+V4+V5+V6+V7+V8+V9)*(1+hpwt+air+space+mpd+YP), data=dat)

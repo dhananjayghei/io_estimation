@@ -60,7 +60,8 @@ controls as follows:
 \end{align*}
 Using these controls and the income means, I run the regression as in
 CMRCF using the non-linear least squares search.
-\begin{table}
+
+\begin{table}[htbp!]
   \floatintro{The table shows the results from OLS and 2SLS estimation
     on BLP data set. These tables replicate the columns I and II of
     Table I from GKP.}
@@ -69,6 +70,17 @@ CMRCF using the non-linear least squares search.
     \input{./tables/gkp_ols.gen}}
   \caption{Estimated Parameters for Automobile Demand (OLS, 2SLS)}
   \label{tab:gkp1}
+\end{table}
+
+\begin{table}[htbp!]
+  \floatintro{The table shows the results from the CMRCF estimation
+    on BLP data set. This table replicate the columns III of
+    Table I from GKP.}
+  \centering
+  \footnotesize{
+    \input{./tables/gkp_cmrcf.gen}}
+  \caption{Estimated Parameters for Automobile Demand (CMRCF)}
+  \label{tab:gkp2}
 \end{table}
 
 \section*{Question 2}
