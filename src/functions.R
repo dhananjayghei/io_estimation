@@ -33,7 +33,7 @@ calc_elasticity <- function(obj, cars, data, year){
     # Calculate own price elasticites
     dat.vnm  <- split(dat, dat$vehicle_name)
     own_price <- do.call(rbind, lapply(dat.vnm, function(x){
-        ope <- round(-price_est* x$price *(1-x$market_share),digits=5)
+        ope <- round(price_est* x$price *(1-x$market_share),digits=5)
         return(ope)
     }))
     # Calculate cross price elasticities
@@ -62,3 +62,25 @@ calc_elasticity <- function(obj, cars, data, year){
     diag(elasticity) <- own_price
     return(elasticity)
 }
+
+
+# Write summary stats
+sum_elas <- function(tab){
+    N <- length(tab)
+    # Calculating the mean, median, and sd
+    tb <- rbind(median(tab), mean(tab), sd(tab))
+    # Number of inelastic demands
+    inelastic <- sum(as.numeric(abs(tab)<1))
+    no_inelastic <- inelastic*100/N
+    tb <- rbind(tb, no_inelastic)
+    tb <- round(tb, 2)
+    rownames(tb) <- c("Median", "Mean", "Standard Deviation",
+                      "Percent of Inelastic Demands")
+    tb <- data.frame(tb)
+    return(tb)
+}
+
+
+
+
+

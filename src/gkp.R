@@ -301,38 +301,6 @@ print(xtable(tab2, align="llrrr"), type="latex", include.rownames=FALSE, table.p
       hline.after=c(-1,0,5,10, nrow(tab2)), floating=FALSE,
       file="../doc/tables/gkp_table2.gen")
 
-# Write summary stats
-sum_elas <- function(tab){
-    N <- length(tab)
-    # Calculating the mean, median, and sd
-    tb <- rbind(median(tab), mean(tab), sd(tab))
-    # Number of inelastic demands
-    inelastic <- sum(as.numeric(abs(tab)<1))
-    no_inelastic <- inelastic*100/N
-    tb <- rbind(tb, no_inelastic)
-    tb <- round(tb, 2)
-    rownames(tb) <- c("Median", "Mean", "Standard Deviation",
-                      "Percent of Inelastic Demands")
-    tb <- data.frame(tb)
-    return(tb)
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ## # Write a function to construct the instruments
 ## # You need market and firm specific variables to identify the data
