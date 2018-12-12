@@ -14,4 +14,4 @@ outside.
 
 The code for the exercises are written in R. You will require the
 following packages to run the code and generate the results.
-- dplyr, BLPestimatoR, AER, xtable
+- dplyr, BLPestimatoR, AER, xtable, stargazer, lmtest
