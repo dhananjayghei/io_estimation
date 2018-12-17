@@ -1,5 +1,6 @@
 source("rust_functions.R")
-library(plyr)
+library(gtools)
+library(xtable)
 # Reading in the Rust data from the zip file
 dat <- read.zip("../data/rust-data.zip")
 # The files are read in alphabetical order
@@ -25,41 +26,33 @@ dat <- createRust(dat)
 ## 11. Year odometer data begins
 dim.fp <- 90
 omax <- 450000
-
-## # Function to get input data set for estimation
-## discretise_data <- function(dat, dim.fp=90, omax=450000){
-##     # Get odometer values at replacement
-##     oval1 <- dat[6,]
-##     oval2 <- dat[9,]
-##     # Store in the dimensions
-##     nr <- dim(dat)[1]
-##     nc <- dim(dat)[2]
-##     # Getting the odometer reading stopping points (for replacement)
-##     dtc <- (dat[12:nr,] >= oval1)*(oval1>0)+(dat[12:nr,] >= oval2)*(oval2>0)
-##     dtx <- (dat[12:nr,] + oval1*dtc*(dtc-2) - .5*oval2*dtc*(dtc-1))
-##     dtx <- ceiling(dim.fp*dtx/omax)
-##     dtc <- rbind(dtc[2:(nr-11),]-dtc[1:(nr-12),], rep(0,nc))
-##     mil <- dat[13:nr,]-dat[12:(nr-1),]
-##     mil <- (dtx[2:(nr-11),]-dtx[1:(nr-12),])+
-##         dtx[1:(nr-12),]*dtc[1:(nr-12),]
-##     return(list(dtc=dtc, dtx=dtx, mil=mil))
-## }
+beta <- .9999
 
 # Discretise the data set
 temp <- lapply(dat, discretise_data)
 # Getting the probabilities
 theta3_within <- lapply(temp, function(x) probs(x[[3]]))
+# These estimates match Table V of Rust (1987)
+theta3_within <- do.call(cbind, theta3_within)
 
 # Storing in the estimates
-# These estimates match Table V of Rust (1987)
-theta3_withEst <- do.call(rbind, lapply(theta, function(x){
-    est <- x
-    est[2,] <- paste("(", est[2,], ")", sep="")
-    return(est)
-}))
-#theta3_est <- data.frame(theta3_est)
-colnames(theta3_withEst) <- c("$\\theta_{31}$", "$\\theta_{32}$",
-                          "$\\theta_{33}$")
+colnames(theta3_within) <- c("1972 GMC (Group 8)", "1974 GMC (Group 6)",
+                             "1972 GMC (Group 7)", "1974 GMC (Group 5)",
+                             "1975 GMC (Group 4)", "D309",
+                             "1983 Grumman (Group 1)",
+                             "1981 Chance (Group 2)", "1979 GMC (Group 3)")
+
+theta3_within$parameters <- c("$\\theta_{31}$", NA, "$\\theta_{32}$", NA, 
+                            "$\\theta_{33}$", NA)
+bn <- ncol(theta3_within)
+theta3_within <- theta3_within[, c(bn, 7,8,9,5,4,2,3,1)]
+colnames(theta3_within)[1] <- "Parameters"
+
+sink(file="../doc/tables/within_est.gen")
+print(xtable(theta3_within, align="llrrrrrrrr"),
+      sanitize.text.function=function(x){x},
+      include.rownames=FALSE, floating=FALSE)
+sink()
 
 # Between Group Estimates of Mileage Process
 # Construct the groups
@@ -109,30 +102,48 @@ groups <- list(group.123, group.1234, group.45, group.67, group.678,
 
 theta3_between <- lapply(groups, probs)
 
-theta3_bwEst <- do.call(rbind, lapply(theta3_between, function(x){
-    est <- x
-    est[2,] <- paste("(", est[2,], ")", sep="")
-    return(est)
-}))
-colnames(theta3_bwEst) <- c("$\\theta_{31}$", "$\\theta_{32}$",
-                            "$\\theta_{33}$")
-
 # Getting the transition probabilities
-P <- lapply(theta, function(x){
-    y <- x[1,]
+P <- lapply(theta3_between, function(x){
+    y <- as.numeric(x[c(1,3,5),])
     P <- transition_probabilities(y)
     return(P)
 })
 
+# Storing the estimates of \theta_3 (Between group)
+theta3_between <- do.call(cbind, theta3_between)
+colnames(theta3_between) <- c("Group 1,2,3", "Group 1,2,3,4", "Group 4,5",
+                              "Group 6,7", "Group 6,7,8", "Group 5,6,7,8",
+                              "Full Sample")
+theta3_between$parameters <- c("$\\theta_{31}$", NA, "$\\theta_{32}$", NA, 
+                            "$\\theta_{33}$", NA)
+bn <- ncol(theta3_between)
+theta3_between <- theta3_between[, c(bn, 1:(bn-1))]
+colnames(theta3_between)[1] <- "Parameters"
+
+sink(file="../doc/tables/between_est.gen")
+print(xtable(theta3_between, align="llrrrrrrr"),
+      sanitize.text.function=function(x){x},
+      include.rownames=FALSE, floating=FALSE)
+sink()
+
+dat.1234 <- for_rust_estimation(temp[c(7:9,5)])
 
 
+## Full likelihood
+## This is the same as l^f in Rust's notation
+fullLL <- function(dat, params){
+    theta <- params[1]
+    RC <- params[2]
+    pll <- partialLL(dat, theta, RC, P)
+    return(pll)
+}
 
+## Running the optimisation routine for Groups 1,2,3,4
+P <- P[[2]]
+system.time(rustEst <- optim(c(1,4), fullLL, dat=dat.1234))
 
-
-
-
-
-
-
+dat.123 <- for_rust_estimation(temp[7:9])
+## Running the optimisation routine for Groups 1,2,3
+system.time(rustEst1 <- optim(c(1,4), fullLL, dat=dat.123))
 
 

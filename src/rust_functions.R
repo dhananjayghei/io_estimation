@@ -68,12 +68,29 @@ probs <- function(mileage){
     pi.1 <- mean(mileage==0, na.rm=TRUE)
     pi.2  <- mean(mileage==1, na.rm=TRUE)
     pi.3 <- mean(mileage==2, na.rm=TRUE)
-    pi <- cbind(pi.1, pi.2, pi.3)
+    pi <- round(rbind(pi.1, pi.2, pi.3),3)
     pi.se <- round(sqrt(pi*(1-pi)/(nr*nc)), 3)
-    pi <- round(pi, 3)
-    pp <- rbind(pi, pi.se)
-    return(pp)
+    est <- data.frame(matrix(nrow=6, ncol=1))
+    for(i in 1:nrow(pi)){
+        est[2*i-1, 1] <- pi[i]
+        est[2*i, 1] <- paste("(", pi.se[i], ")", sep="")
+        }
+    colnames(est) <- "bus"
+    return(est)
 }
+
+## probs <- function(mileage){
+##     nr <- nrow(mileage)
+##     nc <- ncol(mileage)
+##     pi.1 <- mean(mileage==0, na.rm=TRUE)
+##     pi.2  <- mean(mileage==1, na.rm=TRUE)
+##     pi.3 <- mean(mileage==2, na.rm=TRUE)
+##     pi <- cbind(pi.1, pi.2, pi.3)
+##     pi.se <- round(sqrt(pi*(1-pi)/(nr*nc)), 3)
+##     pi <- round(pi, 3)
+##     pp <- rbind(pi, pi.se)
+##     return(pp)
+## }
 
 
 transition_probabilities <- function(Pi, dim.fp=90){
@@ -95,3 +112,76 @@ transition_probabilities <- function(Pi, dim.fp=90){
     return(prob)
 }
 
+
+## Utility function
+utility <- function(theta, RC, dim.fp=90){
+    d0 <- rep(0, dim.fp)
+    d1 <- rep(0, dim.fp)
+    for(i in 1:dim.fp){
+        d0[i] <- -.001*theta*(i)
+        d1[i] <- -RC
+    }
+    return(cbind(d0, d1))
+}
+
+## Social surplus
+social_surplus <- function(theta, RC, EV, beta=.9999){
+    val <- exp(utility(theta, RC)[,1]+beta*EV-EV)+
+        exp(utility(theta, RC)[,2]+beta*EV[1]-EV)
+    val <- EV + log(val)
+    return(val)
+}
+
+## Contraction Mapping
+contraction <- function(theta, RC, EV, P){
+    EV0 <- EV
+    tol <- 1
+    EV1 <- rep(0, length(EV0))
+    while(tol > .001){
+        EV1  <- P %*% social_surplus(theta=theta, RC=RC, EV=EV0)
+        tol <- max(abs(EV1-EV0), na.rm=TRUE)
+        EV0 <- EV1
+        EV1 <- rep(0, length(EV0))
+    }
+    return(EV0)
+}
+
+## Conditional choice probabilities
+choice_probs <- function(theta, RC, P){
+    EV <- contraction(theta, RC, rep(1,dim.fp), P)
+    maxEV <- max(EV, na.rm=TRUE)
+    PK <- exp(utility(theta, RC)[,1]+beta*EV-maxEV)/
+        (exp(utility(theta,RC)[,1]+beta*EV-maxEV)+
+         exp(utility(theta,RC)[,2]+beta*EV[1]-maxEV))
+    return(PK)
+}
+
+
+## Partial likelihood
+## This is the same as l^2 in Rust's notation
+partialLL <- function(dat, theta, RC, P){
+#    choice_probs(theta=theta, RC=RC, P=P)
+    decision <- dat[,"dtc"]
+    state <- dat[,"dtx"]
+    cp_tmp <- choice_probs(theta, RC, P)
+    relevant_probs <- cp_tmp[state]
+    pll <- ifelse(decision==0, log(relevant_probs), log(1-relevant_probs))
+    return(-sum(pll, na.rm=TRUE))
+}
+
+## Creating Rust's data for estimation
+for_rust_estimation <- function(dat){
+    temp <- do.call(rbind, lapply(dat, function(x){
+        dtc <- as.matrix(x[[1]])
+        dtc <- dtc[-nrow(dtc),]
+        dim(dtc) <- c(prod(dim(dtc)),1)
+        dtx <- as.matrix(x[[2]])
+        dtx <- dtx[-nrow(dtx),]
+        dim(dtx) <- c(prod(dim(dtx)),1)
+        mil <- as.matrix(x[[3]])
+        dim(mil) <- c(prod(dim(mil)), 1)
+        return(data.frame(dtc=dtc,dtx=dtx,mil=mil))
+    }))
+    rownames(temp) <- NULL
+    return(temp)
+}
