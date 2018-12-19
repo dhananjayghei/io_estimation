@@ -1,0 +1,146 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=.75in]{geometry} \usepackage{amsmath}
+\usepackage{graphicx} \usepackage{amssymb} \usepackage{natbib}
+\usepackage{float} \usepackage{appendix} \usepackage{hyperref}
+\usepackage{rotating} \usepackage{pdflscape}
+\usepackage{mathrsfs} \floatstyle{ruled} \restylefloat{table}
+\restylefloat{figure} \bibliographystyle{unsrtnat}
+
+\newcommand{\floatintro}[1]{
+  
+  \vspace*{0.1in}
+  
+  {\footnotesize
+
+    #1
+    
+  }
+  
+  \vspace*{0.1in} } \newcommand{\Hline}{\noindent\rule{18cm}{0.5pt}}
+\title{Replicating John Rust's Bus replacement engine paper}
+\author{Dhananjay Ghei\footnote{Department of Economics, University of
+    Minnesota. This replication paper was written as a part of
+    Homework 4 for ECON 8602 - Industrial Organisation. The code for
+    this exercise was written in \texttt{R}. Replication files are
+    present on GitHub.}}  \date{December 16, 2018}
+\begin{document}
+\maketitle
+\begin{abstract}
+This paper replicates the estimation procedure of
+\citet{rust1987optimal} paper in \texttt{R}. We have the data for 8
+groups of buses starting from . This is the same data set as used in
+the original paper from \citet{rust1987optimal}. The paper presents
+the summary statistics to see if the data looks similar to the
+original paper and then proceeds to estimation for different groups of
+buses.
+\end{abstract}
+\newpage
+\tableofcontents
+\section{Introduction}
+
+\section{Data}
+The data is taken from \citet{rust1987optimal} paper. The data is
+available on 9 bus groups. However, in the estimation procedure,
+\citet{rust1987optimal} uses only the maintenance records of 162 buses
+excluding the bus group ``D309''. The data is available on Rust's
+website\footnote{\url{https://editorialexpress.com/jrust/nfxp.html}}. I
+downloaded the zip file and read it in \texttt{R}. The data is
+available from the period December 1974 until May 1985. The data is
+provided in a single column format which needs to be reshaped in the
+correct dimensions. Following this, the first 11 rows for each bus in
+each data set contains the data on the following items:
+\begin{enumerate}
+\item Bus Number
+\item Month Purchased
+\item Year Purchased
+\item Month of 1st engine replacement
+\item Year of 1st engine replacement
+\item Odometer at replacement
+\item Month of 2nd engine replacement
+\item Year of 2nd engine replacement
+\item Odometer at replacement
+\item Month (Odometer data begins)
+\item Year (Odometer data begins)
+\end{enumerate}
+Following this, the remaining rows are the monthly mileage
+observations for each bus. Table \ref{tab:sumstats} gives the summary
+statistics of the bus types included in the sample. This is consistent
+with Table IIa from \citet{rust1987optimal} therefore, we have the
+correct data for estimation. One can see that a lot of these numbers
+are similar to the ones in the original paper thereby, guaranteeing
+that the data was read in correctly.
+
+\begin{table}
+  \floatintro{The table shows summary statistics of for the subsample
+    of buses for which at least 1 replacement occurred. The table
+    corresponds to the Table IIa in \citep{rust1987optimal}}. 
+  \centering
+  \input{./tables/stats_rust.gen}
+  \caption{Summary of replacement data}
+  \label{tab:sumstats}
+\end{table}
+
+Finally, the data consists of $\{i_t, x_t\}$ where $i_t^m$ is the
+engine replacement decision in month $t$ for bus $m$ and $x_t^m$ is
+the mileage since last replacement of bus $m$ in month $t$. In the
+next section, the goal is to estimate the parameters $\theta = (\beta,
+\theta_1, RC, \theta_3)$ by maximum likelihood using the nested fixed
+point algorithm. 
+\section{Methodology}
+The estimation strategy as laid out in \citet{rust1987optimal} is in
+three stages corresponding to each of the likelihood functions $l^1$,
+$l^2$ and $l^f$, where $l^f$ is the full likelihood function and $l^1$
+and $l^2$ are ``partial likelihood'' functions given by:
+\begin{align*}
+  l^1(x_1, \dots, x_T, i_1, \dots, i_T | x_0, i_0, \theta) &=
+  \Pi_{t=1}^T p(x_t|x_{t-1},i_{t-1},\theta_3)\\
+  l^2(x_1, \dots, x_T,i_1,\dots,i_T|\theta) &= \Pi_{t=1}^T P(i_t|x_t, \theta)
+\end{align*}
+The first step is to estimate $p(x)$
+non-parametrically. I do this for within group and between group
+estimates as in the original paper. 
+
+Finally, I estimate the parameters $\theta_1$ and $RC$ by MLE using
+the nested fixed point algorithm. Set $\beta=.9999$. Instead of using
+the BHHH algorithm, I will use the inbuilt optimisation routines in
+\texttt{R}. 
+\section{Results}
+Table \ref{tab:within} shows the within group estimates of $\theta_3$
+form 8 different bus groups. These are estimated non-parametrically by
+directly calculating the mean.
+
+\begin{table}[htbp!]
+  \floatintro{The table shows the within group estimates of $\theta_3$
+    from 8 different groups as in \citet{rust1987optimal}. Standard
+    errors are in parantheses. These estimates match the ones in the
+    original paper.}
+  \centering
+  \resizebox{.9\textwidth}{!}{
+    \input{./tables/within_est.gen}}
+  \caption{Within group estimates}
+  \label{tab:within}
+\end{table}
+
+Table \ref{tab:between} shows the between group estimates of
+$\theta_3$ from the same groups as taken in the paper. The estimates
+of probabilities match the ones in the paper. Consider, for example,
+the bus group 1,2,3,4 which is what we will be estimating later
+on. $\theta_{31}$ equals .349, $\theta_{32}$ equals .572 and
+$\theta_{33}$ equals .012. 
+\begin{table}[htbp!]
+  \floatintro{The table shows the between group estimates of $\theta_3$
+    from 8 different groups as in \citet{rust1987optimal}. Standard
+    errors are in parantheses. These estimates match the ones in the
+    original paper.}
+  \centering
+  \resizebox{\textwidth}{!}{
+    \input{./tables/between_est.gen}}
+  \caption{Between group estimates}
+  \label{tab:between}
+\end{table}
+
+\section{Conclusion}
+
+\newpage
+\bibliography{IOpapers}
+\end{document}

@@ -12,6 +12,40 @@ dat <- checkRows(dat, Rows)
 # Constructing the data set in the right dimension
 dat <- createRust(dat)
 
+## Replicating Table II (Summary of replacement data)
+## Subsample of buses for which at least 1 replacement occured
+# 1 - g870, 2-rt50, 3-t8h203, 4-a530875
+# 5-a530874, 6-a452374, 7-a530872, 8-a452372
+groups <- c("g870", "rt50", "t8h203", "a530875", "a530874",
+            "a452374", "a530872", "a452372")
+
+Dat <- dat[groups]
+
+stats <- do.call(rbind, lapply(Dat, function(x){
+    mileage <- x[c(6,9),]
+    dim(mileage) <- c(length(mileage), 1)
+    ## Max, Min, Mean, Sd
+    mileage <- mileage[which(mileage>0)]
+    if(length(mileage)>0){
+        stats <- cbind(max(mileage), min(mileage),
+                       mean(mileage), sd(mileage))
+        stats <- round(stats,0)
+    }else{
+        stats <- rep(0,4)
+        stats <- round(stats,0)
+    }
+    return(stats)
+}))
+rownames(stats) <- paste("Group", 1:8, sep=" ")
+colnames(stats) <- c("Max", "Min", "Mean", "Std. dev")
+
+sink(file="../doc/tables/stats_rust.gen")
+print(xtable(stats, align="lrrrr", digits=rep(0,5)), include.rownames=TRUE,
+      floating=FALSE)
+sink()
+
+
+
 # The first 11 rows in all the data sets are in the following order
 ## 1. Bus Number
 ## 2. Month Purchased
@@ -47,6 +81,7 @@ theta3_within$parameters <- c("$\\theta_{31}$", NA, "$\\theta_{32}$", NA,
 bn <- ncol(theta3_within)
 theta3_within <- theta3_within[, c(bn, 7,8,9,5,4,2,3,1)]
 colnames(theta3_within)[1] <- "Parameters"
+colnames(theta3_within)[-1] <- paste("Group", 1:8, sep=" ")
 
 sink(file="../doc/tables/within_est.gen")
 print(xtable(theta3_within, align="llrrrrrrrr"),
@@ -140,7 +175,10 @@ fullLL <- function(dat, params){
 
 ## Running the optimisation routine for Groups 1,2,3,4
 P <- P[[2]]
-system.time(rustEst <- optim(c(1,4), fullLL, dat=dat.1234))
+system.time(rustEst <- optim(c(1,4), fullLL, dat=dat.1234, hessian=TRUE))
+
+## Getting the standard errors
+rust.se <- sqrt(diag(solve(rustEst$hessian)))
 
 dat.123 <- for_rust_estimation(temp[7:9])
 ## Running the optimisation routine for Groups 1,2,3
