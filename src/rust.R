@@ -166,22 +166,54 @@ dat.1234 <- for_rust_estimation(temp[c(7:9,5)])
 
 ## Full likelihood
 ## This is the same as l^f in Rust's notation
-fullLL <- function(dat, params){
+fullLL <- function(dat, params, Q){
     theta <- params[1]
     RC <- params[2]
-    pll <- partialLL(dat, theta, RC, P)
+    pll <- partialLL(dat, theta, RC, Q)
     return(pll)
 }
 
 ## Running the optimisation routine for Groups 1,2,3,4
-P <- P[[2]]
-system.time(rustEst <- optim(c(1,4), fullLL, dat=dat.1234, hessian=TRUE))
-
+system.time(rustEst <- optim(c(1,4), fullLL, dat=dat.1234, hessian=TRUE, Q=P[[2]]))
 ## Getting the standard errors
-rust.se <- sqrt(diag(solve(rustEst$hessian)))
+rust1234.se <- sqrt(diag(solve(rustEst$hessian)))
 
 dat.123 <- for_rust_estimation(temp[7:9])
 ## Running the optimisation routine for Groups 1,2,3
-system.time(rustEst1 <- optim(c(1,4), fullLL, dat=dat.123))
+system.time(rustEst1 <- optim(c(1,4), fullLL, dat=dat.123, hessian=TRUE, Q=P[[1]]))
+## Getting the standard errors
+rust123.se <- sqrt(diag(solve(rustEst1$hessian)))
 
+## Putting the data set for individual group 4 in the right order
+x <- temp[[5]]
+dtc <- as.matrix(x[[1]])
+dtc <- dtc[-nrow(dtc),]
+dim(dtc) <- c(prod(dim(dtc)),1)
+dtx <- as.matrix(x[[2]])
+dtx <- dtx[-nrow(dtx),]
+dim(dtx) <- c(prod(dim(dtx)),1)
+mil <- as.matrix(x[[3]])
+dim(mil) <- c(prod(dim(mil)), 1)
+dat4 <- data.frame(dtc=dtc,dtx=dtx,mil=mil)
+## Getting the right transition probabilities for Group 4
+probabs <- as.numeric(theta3_within[c(1,3,5), 5])
+Q <- transition_probabilities(probabs)
 
+## Running the optimisation routine for Group 4
+system.time(rustEst2 <- optim(c(1,4), fullLL, dat=dat4, hessian=TRUE, Q=Q))
+## Getting the standard errors
+rust4.se <- sqrt(diag(solve(rustEst2$hessian)))
+
+est_obj <- list(rustEst1, rustEst2, rustEst)
+
+estimates <- do.call(cbind, lapply(est_obj, store_estimates))
+## rownames(estimates) <- NULL
+colnames(estimates) <- c("Group 1,2,3", "Group 4", "Group 1,2,3,4")
+estimates <- estimates[c(2,1),]
+## Storing the estimates
+sink(file="../doc/tables/estimates_rust.gen")
+print(xtable(estimates, align="lrrr"),
+      sanitize.text.function=function(x){x},
+      include.rownames=TRUE,
+      floating=FALSE)
+sink()

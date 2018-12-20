@@ -185,3 +185,14 @@ for_rust_estimation <- function(dat){
     rownames(temp) <- NULL
     return(temp)
 }
+
+
+## Writing a function to store the results of the estimates
+store_estimates <- function(obj){
+    est <- round(obj$par,4)
+    est.se <- round(sqrt(diag(solve(obj$hessian))),4)
+    estimate <- paste(est, "(" ,est.se, ")", sep="")
+    estimate <- data.frame(estimate)
+    rownames(estimate) <- c("$\\theta_{11}$", "RC")
+    return(estimate)
+}
