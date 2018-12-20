@@ -2,10 +2,10 @@
 \usepackage[margin=.75in]{geometry} \usepackage{amsmath}
 \usepackage{graphicx} \usepackage{amssymb} \usepackage{natbib}
 \usepackage{float} \usepackage{appendix} \usepackage{hyperref}
-\usepackage{rotating} \usepackage{pdflscape}
+\usepackage{rotating} \usepackage{pdflscape} 
 \usepackage{mathrsfs} \floatstyle{ruled} \restylefloat{table}
 \restylefloat{figure} \bibliographystyle{unsrtnat}
-
+\setcounter{tocdepth}{1}
 \newcommand{\floatintro}[1]{
   
   \vspace*{0.1in}
@@ -26,29 +26,36 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-This paper replicates the estimation procedure of
-\citet{rust1987optimal} paper in \texttt{R}. We have the data for 8
-groups of buses starting from . This is the same data set as used in
-the original paper from \citet{rust1987optimal}. The paper presents
-the summary statistics to see if the data looks similar to the
-original paper and then proceeds to estimation for different groups of
-buses.
+  This note replicates the estimation procedure of
+  \citet{rust1987optimal} paper in \texttt{R}. We have the data on 8
+  groups of buses. This is the same data set as used in the original
+  paper from \citet{rust1987optimal}. The paper presents the summary
+  statistics to see if the data looks similar to the original paper
+  and then proceeds to estimation for different groups of buses. I
+  replicate the within and between group estimates for different bus
+  groups and then estimate the full likelihood to get estimates for
+  three different groups (Group 1,2,3, Group 4, and Group
+  1,2,3,4). Instead of using the BHHH algorithm, I use the inbuilt
+  optimisation routines of \texttt{R} and the estimates are quite
+  close to the ones in the original paper.
 \end{abstract}
 \newpage
 \tableofcontents
-\section{Introduction}
-
+\newpage
 \section{Data}
-The data is taken from \citet{rust1987optimal} paper. The data is
+The data is available on Rust's
+website\footnote{\url{https://editorialexpress.com/jrust/nfxp.html}}. The
+data is taken from \citet{rust1987optimal} paper. The data is
 available on 9 bus groups. However, in the estimation procedure,
 \citet{rust1987optimal} uses only the maintenance records of 162 buses
-excluding the bus group ``D309''. The data is available on Rust's
-website\footnote{\url{https://editorialexpress.com/jrust/nfxp.html}}. I
-downloaded the zip file and read it in \texttt{R}. The data is
-available from the period December 1974 until May 1985. The data is
-provided in a single column format which needs to be reshaped in the
-correct dimensions. Following this, the first 11 rows for each bus in
-each data set contains the data on the following items:
+excluding the bus group ``D309''. I will drop this group as in the
+original paper and follow the procedure closely. I
+downloaded the zip file and read it in \texttt{R}.\\
+The data is available from the period December 1974 until May
+1985. The data is provided in a single column format which needs to be
+reshaped in the correct dimensions. Following this, the first 11 rows
+for each bus in each data set contains the data on the following
+items:
 \begin{enumerate}
 \item Bus Number
 \item Month Purchased
@@ -62,13 +69,13 @@ each data set contains the data on the following items:
 \item Month (Odometer data begins)
 \item Year (Odometer data begins)
 \end{enumerate}
-Following this, the remaining rows are the monthly mileage
-observations for each bus. Table \ref{tab:sumstats} gives the summary
-statistics of the bus types included in the sample. This is consistent
-with Table IIa from \citet{rust1987optimal} therefore, we have the
-correct data for estimation. One can see that a lot of these numbers
-are similar to the ones in the original paper thereby, guaranteeing
-that the data was read in correctly.
+Subsequently, the remaining rows are the monthly mileage observations
+for each bus. Table \ref{tab:sumstats} gives the summary statistics of
+the bus types included in the sample. This is consistent with Table
+IIa from \citet{rust1987optimal} therefore, we have the correct data
+for estimation. One can see that a lot of these numbers are similar to
+the ones in the original paper thereby, guaranteeing that the data was
+read in correctly.
 
 \begin{table}
   \floatintro{The table shows summary statistics of for the subsample
@@ -83,27 +90,55 @@ that the data was read in correctly.
 Finally, the data consists of $\{i_t, x_t\}$ where $i_t^m$ is the
 engine replacement decision in month $t$ for bus $m$ and $x_t^m$ is
 the mileage since last replacement of bus $m$ in month $t$. In the
-next section, the goal is to estimate the parameters $\theta = (\beta,
-\theta_1, RC, \theta_3)$ by maximum likelihood using the nested fixed
-point algorithm. 
+next section, the goal is to estimate the parameters
+$\theta = (\beta, \theta_1, RC, \theta_3)$ by maximum likelihood using
+the nested fixed point algorithm.
 \section{Methodology}
+The first step is to discretise the state space. In order to do so, I
+divide the mileage into equally sized ranges of length 5000 with an
+upper bound of 450,000 miles. Thus, $n=90$ in this case. Following
+this, the state variable $x$ will take only discrete integer values in
+the set $\{1,2,3,\dots,n\}$. Using the discretised state variable $x$,
+the decision rule is then reduced to a simple multinomial distribution
+on the discretised space. In this case, I follow rust and construct
+an indicator for mileage which takes only 3 values $\{0,1,2\}$
+corresponding to monthly mileage in the intervals $[0,5000), [5000,
+10,000)$ and $[10,000, \infty)$ respectively.  
 The estimation strategy as laid out in \citet{rust1987optimal} is in
 three stages corresponding to each of the likelihood functions $l^1$,
 $l^2$ and $l^f$, where $l^f$ is the full likelihood function and $l^1$
 and $l^2$ are ``partial likelihood'' functions given by:
 \begin{align*}
   l^1(x_1, \dots, x_T, i_1, \dots, i_T | x_0, i_0, \theta) &=
-  \Pi_{t=1}^T p(x_t|x_{t-1},i_{t-1},\theta_3)\\
+                                                             \Pi_{t=1}^T p(x_t|x_{t-1},i_{t-1},\theta_3)\\
   l^2(x_1, \dots, x_T,i_1,\dots,i_T|\theta) &= \Pi_{t=1}^T P(i_t|x_t, \theta)
 \end{align*}
-The first step is to estimate $p(x)$
-non-parametrically. I do this for within group and between group
-estimates as in the original paper. 
-
-Finally, I estimate the parameters $\theta_1$ and $RC$ by MLE using
-the nested fixed point algorithm. Set $\beta=.9999$. Instead of using
-the BHHH algorithm, I will use the inbuilt optimisation routines in
-\texttt{R}. 
+The first step is to estimate $p(x)$ non-parametrically. I do this for
+within group and between group estimates as in the original
+paper. Given the discretised space, the probability $\pi_j$ is then
+given by: $\pi_j = Pr\{x_{t+j}=x_t+j\}$ for $j=0,1,2$. The
+non-parametric estimation then involves simply calculating the average
+number of times the bus was in a particular state. I calculate these
+averages for within group (i.e. for each bus group separately) and for
+between group (i.e. for combined bus groups). Standard errors are
+calculated based on the standard non-parametric estimation.\\
+Once, we estimate these probabilities, we can construct a $n \times n$
+transition matrix  $\Pi$ which is given by:
+\begin{align*}
+  \Pi = \begin{bmatrix}
+    \pi_0 & \pi_1 & \pi_2 & 0 & 0 & \dots & 0\\
+    0 & \pi_0 & \pi_1 & \pi_2 & 0 & \dots & 0\\
+    0 & 0 & \pi_0 & \pi_1 & \pi_2 & \dots & 0\\
+    \vdots \\
+    0& 0& &\dots & & \pi_0 & 1-\pi_1&\\
+    0 & 0 & \dots & 0 & \dots & 0& 1
+  \end{bmatrix}
+\end{align*}
+This is the transition probability matrix for the uncontrolled Markov
+process. Now, we can proceed to the next step of estimation.  Finally,
+I estimate the parameters $\theta_1$ and $RC$ by MLE using the nested
+fixed point algorithm. Set $\beta=.9999$. Instead of using the BHHH
+algorithm, I will use the inbuilt optimisation routines in \texttt{R}.
 \section{Results}
 Table \ref{tab:within} shows the within group estimates of $\theta_3$
 form 8 different bus groups. These are estimated non-parametrically by
@@ -126,7 +161,7 @@ $\theta_3$ from the same groups as taken in the paper. The estimates
 of probabilities match the ones in the paper. Consider, for example,
 the bus group 1,2,3,4 which is what we will be estimating later
 on. $\theta_{31}$ equals .349, $\theta_{32}$ equals .572 and
-$\theta_{33}$ equals .012. 
+$\theta_{33}$ equals .012.
 \begin{table}[htbp!]
   \floatintro{The table shows the between group estimates of $\theta_3$
     from 8 different groups as in \citet{rust1987optimal}. Standard
@@ -139,8 +174,73 @@ $\theta_{33}$ equals .012.
   \label{tab:between}
 \end{table}
 
+Table \ref{tab:estimates} shows the structural estimates for the full
+likelihood estimation where the cost function is assumed to be of
+linear form $c(x,\theta_1)=.001\theta_{11}x$ and $\beta$ is set to
+.9999. These are the same specifications as used in the paper to get
+Table IX. Estimates for three different samples are presented as in
+the original paper. These samples are Group 1,2,3, Group 4, and Group
+1,2,3,4. Consider for example the case of Group 1,2,3,4, my estimates
+are $RC=9.792$ and $\theta_{11}=2.6695$ which are close to the
+original estimates of $RC=9.7558$ and $\theta_{11}=2.6275$ from Table
+IX of \citet{rust1987optimal}. The standard errors are calculated
+using the square root of the inverse of the Hessian matrix. The
+Hessian from the optimisation routine is the second-derivative of the
+likelihood function evaluated at the optimum. The standard errors
+estimated for the same group are $se(RC)=.909$ and
+$se(\theta_{11})=.4781$ which are similar to the estimates from the
+Rust's paper of $se(RC)=1.227$ and $se(\theta_{11})=.618$. The
+difference in the standard errors comes from the fact that I am using
+the Fischer information matrix (Hessian) instead of the original
+method from the Rust paper.
+\begin{table}[htbp!]
+  \floatintro{The table shows the structural estimates for cost
+    function $c(x,\theta_1)=.001\theta_{11}x$. The fixed point
+    dimension is 90 and $\beta=.9999$. Standard errors are in parantheses. This table
+    replicates Table IX of \citep{rust1987optimal}.}
+  \centering
+  \input{./tables/estimates_rust.gen}
+  \caption{Structural Estimates for linear cost function}
+  \label{tab:estimates}
+\end{table}
 \section{Conclusion}
+In this note, I used the bus replacement data of Harlod Zurcher (which
+was used by Rust in his paper) to replicate the empirical model as
+estimated by John Rust. I feed in the data, get summary statistics to
+see if the data was indeed consistent with the paper. Then, I used the
+three step estimation as laid out in the paper to replicate the
+results as closely as possible. First, I estimate the within and
+between group estimates of the transition and then use it to estimate
+the full likelihood function assuming a linear cost function as in the
+original paper. I used the nested fixed point algorithm to estimate
+the results and follow as closely as possible to Rust's approach. The
+only difference being that I used the inbuilt optimisation algorithm
+instead of writing the BHHH algorithm for estimation.\\
+Following this, I was able to replicate the results from Table IX of
+the paper. The point estimates are quite close to the original
+estimates.
+\section{Replication Files}
+The replication files are present on my Github
+repository. \url{https://www.github.com/dhananjayghei/io_estimation}.
+The code was written in \texttt{R}. The data set is present in
+\texttt{data/rust-data.zip}. The code is present in the \texttt{src/}
+folder. The \texttt{src/} folder has two files:
+\begin{enumerate}
+\item \texttt{rust\_functions.R} - This file contains all the functions
+  that I wrote for estimation which are called in the main file.
+\item \texttt{rust.R} - This is the main file that reads in the data
+  set from the zip file, performs estimation, and generates the \LaTeX
+  table for results shown in the Results section.
+\end{enumerate}
+Apart from the base packages that already come with \texttt{R}, you
+will need the following \texttt{R} packages to run the code: gtools,
+xtable
 
+For people on Linux/Mac, there is also a \texttt{Makefile} present
+in the repository that you could use to run the code
+directly. Clone the Github repository to your local machine, open the
+terminal and go to the \texttt{src/} directory and run the following
+command: \texttt{make rust}.
 \newpage
 \bibliography{IOpapers}
 \end{document}
