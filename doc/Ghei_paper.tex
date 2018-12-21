@@ -290,7 +290,14 @@ analysis I focus on the first case with 10 million draws.
   \caption{Bound estimates of common fixed costs (million USD)}
   \label{tab:res1}
 \end{table}
-Next, I estimate the fixed costs varying by the destination.
+Next, I estimate the fixed costs varying by the destination. Table
+\ref{tab:res2} shows the bound estimates for fixed costs varying by
+destination. The results improve slightly as one can see that there is
+more variation in the fixed costs compared to the previous
+case. Exporting a movie to France, Germany and Spain is cheaper
+compared to when the movie is exported to the UK or US. Splitting by
+the destination country shows that the costs in the previous case did
+not highlight this variation.
 \begin{table}[htbp!]
   \floatintro{The table shows the bound estimates of fixed costs
     varying by destination using only the first set of instruments
@@ -312,8 +319,13 @@ Next, I estimate the fixed costs varying by the destination.
     (million USD)}
   \label{tab:res2}
 \end{table}
-
-
+Subsequently, I estimate the fixed costs varying by both the
+destination and origin. Table \ref{tab:res3} shows the bound estimates
+for this exercise. Note that the lower bound of confidence intervals
+in the diagonal will be ``NA'' as in the diagonal the origin and the
+destination country is the same and the way we cleaned the data set
+earlier, there are no movies of the origin country in the data set
+which are not released in the same country itself.
 \begin{table}[htbp!]
   \floatintro{The table shows the bound estimates of fixed costs
     varying by both destination and origin using only the first set of
