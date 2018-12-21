@@ -1,7 +1,7 @@
 \documentclass[11pt, letterpaper]{article} \usepackage{amsmath}
 \usepackage{amssymb} \usepackage{graphicx} \usepackage{bbm}
 \usepackage{geometry} \usepackage{natbib} \usepackage{float}
-\usepackage{appendix} \usepackage{hyperref} \usepackage{rotating}
+\usepackage[toc, page]{appendix} \usepackage{hyperref} \usepackage{rotating}
 \usepackage{mathrsfs} \floatstyle{ruled} \restylefloat{table}
 \restylefloat{figure} \bibliographystyle{unsrtnat}
 \newcommand{\floatintro}[1]{
@@ -15,22 +15,31 @@
   }
   
   \vspace*{0.1in} } \newcommand{\Hline}{\noindent\rule{18cm}{0.5pt}}
-\title{How much does it cost to export a movie abroad?} \author{Dhananjay Ghei} \date{December 20, 2018}
+\title{How much does it cost to export a movie abroad?}
+\author{Dhananjay Ghei\footnote{Department of Economics, University of
+    Minnesota. This paper was written as a course requirement for ECON
+    8602 - Industrial Organisation. The replication files are present
+    on Github. The code for this exercise was written in \texttt{R}
+    and \texttt{Julia}. Appendix \ref{appendix:a} lays out the files
+    you will need in order to replicate the results from this paper.}}
+\date{December 20, 2018}
 
 \begin{document}
 \maketitle
 \begin{abstract}
-Exporting decision of movie depends on the expected profits that a
-movie will earn abroad. Such estimates are known to the exporter but
-not to the econometrician. Given the predicted revenues, one can
-estimate the fixed costs of exporting which will help in inferring if
-the movie is exported or not. This paper tries to estimate the fixed
-costs of exporting movies using a novel data set of 5500 movies from
-2001-2009. We provide bound estimates on the fixed cost using revealed
-preference moment inequalities as in \citet{pakes2015}. We estimate
-the fixed costs to be varying across destination and origin
-countries. The fixed costs seem to be in the range of 2-50 million
-depending on the destination country.
+  Exporting decision of movie depends on the expected profits that a
+  movie will earn abroad. Such estimates are known to the exporter but
+  not to the econometrician. Given the predicted revenues, one can
+  estimate the fixed costs of exporting which will help in inferring
+  if the movie is exported or not. This paper tries to estimate the
+  fixed costs of exporting movies using a novel data set of 5500
+  movies from 2001-2009. We provide bound estimates on the fixed cost
+  using revealed preference moment inequalities as in
+  \citet{pakes2015}. We estimate the fixed costs to be varying across
+  destination and origin countries. The fixed costs seem to be in the
+  range of 2-50 million depending on the destination country. 90\%
+  confidence intervals are estimated on the bounds using the
+  methodology laid out in \citet{pakes2015}.
 \end{abstract}
 \newpage
 \tableofcontents
@@ -134,7 +143,29 @@ Let
 $d_{ijt} = \mathbbm{1}\{\eta^{-1}\mathbb{E}[r_{ijt} |
 \mathcal{I}_{ijt}, \nu_{ijt}] - \beta_0 - \nu_{ijt} \geq 0\}$
 denote the decision of movie $i$ to export to country $j$ at time $t$
-where, $\mathbbm{1}$ denotes the indicator function.
+where, $\mathbbm{1}$ denotes the indicator function. We can re-write
+$d_{ijt}$ as:
+\begin{align*}
+  d_{ijt} = \mathbbm{1}\{\eta^{-1} \mathbb{E}[r_{ijt} |
+  \mathcal{I}_{ijt}] - f_{ijt} \geq 0\}
+\end{align*}
+where, $r_{ijt}$ is export revenue conditional on entry and $f_{ijt}$
+is fixed export cost as before. Denote the agent's expectational error
+as
+$\varepsilon_{ijt} = r_{ijt} - \mathbb{E}[r_{ijt} |
+\mathcal{I}_{ijt}]$ and we will assume that:
+\begin{align*}
+  \mathbb{E}[\varepsilon_{ijt} | \mathcal{I}_{ijt}] = 0
+\end{align*}
+Among all the variables in the information set, only a subset of them
+will be used. We consider three possible cases - firstly, firm has
+perfect foresight and knows the exact predicted revenues from
+exporting the movie to a particular country, secondly, the firm has
+information on the predicted revenue and the lagged box office price
+in the other country and finally, the firm has knowledge on the
+predicted revenue, lagged box office price in the other country and
+the lagged average box office revenue in the country. The steps for
+estimation using this method are laid out in Section 4.
 \section{Data}
 We have data on movies from 5 different countries - France, Germany,
 Spain, UK and US from 2001-2009. There are a total of 5500
@@ -197,7 +228,7 @@ Table \ref{tab:tab3} shows the percentage of movies released in
 different countries. Note that, based on our data cleaning the
 diagonal elements are 100\%. On an average, 75\% of the US movies are
 exported to the other 4 countries. Spain is the highest exporter of
-French and German movies. 
+French and German movies.
 \begin{table}[htbp!]
   \floatintro{The table shows the percentage of movies released in
     different countries. For example, consider the first row, 100\% of
@@ -299,7 +330,8 @@ varying the number of draws used for estimation of the confidence
 interval. The results do not change much as I vary the number of draws
 from 10000, 1 million to 10 million. The bounds do tend to get a bit
 lower as we increase the number of draws. Therefore, in the subsequent
-analysis I focus on the first case with 10 million draws.
+analysis I focus on the first case (i.e. predicted revenues as
+instruments) with 10 million draws.
 
 \begin{table}[htbp!]
   \floatintro{The table shows the bound estimates of common fixed
@@ -323,14 +355,15 @@ analysis I focus on the first case with 10 million draws.
   \caption{Bound estimates of common fixed costs (million USD)}
   \label{tab:res1}
 \end{table}
-Next, I estimate the fixed costs varying by the destination. Table
-\ref{tab:res2} shows the bound estimates for fixed costs varying by
-destination. The results improve slightly as one can see that there is
-more variation in the fixed costs compared to the previous
-case. Exporting a movie to France, Germany and Spain is cheaper
-compared to when the movie is exported to the UK or US. Splitting by
-the destination country shows that the costs in the previous case did
-not highlight this variation.
+One would posit that the fixed export costs can vary by
+destination. Therefore, I estimate the fixed costs varying by the
+destination. Table \ref{tab:res2} shows the bound estimates for fixed
+costs varying by destination. The results improve slightly as one can
+see that there is more variation in the fixed costs compared to the
+previous case. The fixed costs of exporting a movie to France, Germany
+and Spain is cheaper compared to when the movie is exported to the UK
+or US. Splitting by the destination country shows that the costs in
+the previous case did not highlight this variation.
 \begin{table}[htbp!]
   \floatintro{The table shows the bound estimates of fixed costs
     varying by destination using only the first set of instruments
@@ -352,13 +385,15 @@ not highlight this variation.
     (million USD)}
   \label{tab:res2}
 \end{table}
-Subsequently, I estimate the fixed costs varying by both the
-destination and origin. Table \ref{tab:res3} shows the bound estimates
-for this exercise. Note that the lower bound of confidence intervals
-in the diagonal will be ``NA'' as in the diagonal the origin and the
-destination country is the same and the way we cleaned the data set
-earlier, there are no movies of the origin country in the data set
-which are not released in the same country itself.
+One could also argue that the fixed costs vary not only by the
+destination but also by the origin country. Subsequently, I estimate
+the fixed costs varying by both the destination and origin. Table
+\ref{tab:res3} shows the bound estimates for this exercise. Note that
+the lower bound of confidence intervals in the diagonal will be ``NA''
+as in the diagonal the origin and the destination country is the same
+and the way we cleaned the data set earlier, there are no movies of
+the origin country in the data set which are not released in the same
+country itself.
 \begin{table}[htbp!]
   \floatintro{The table shows the bound estimates of fixed costs
     varying by both destination and origin using only the first set of
@@ -389,6 +424,13 @@ which are not released in the same country itself.
   \label{tab:res3}
 \end{table}
 
+Table \ref{tab:res4} shows the bound estimates of fixed costs varying
+by destination and time-period. I split the same in to two time
+periods (2002-06) and (2006-09). The bound estimates do not seem to
+reflect that the costs are increasing over time however, the
+confidence interval widens once we move from the first time period to
+the other time period. The 90\% confidence intervals widen as we have
+smaller sample size.
 \begin{table}[htbp!]
   \floatintro{The table shows the bound estimates of fixed costs
     varying by destination and time-period. I split the sample in to
@@ -421,17 +463,30 @@ We estimate the fixed costs of exporting a movie abroad. The decision
 to export is dependent on the expected revenues that a movie will
 generate on exporting. We use predicted revenues to estimate the
 bounds and confidence intervals.  We use the revealed preference
-moment inequality approach to construct the estimates.
+moment inequality approach to construct the estimates.\\
+Our estimates shed some light on the fixed costs. First, we find that
+the common fixed costs are in the range of 2.8-9.6 million
+USD. Second, we find that the fixed costs are varying by destination
+and are the highest when exporting to US. This makes sense as the
+movies in other countries are in their languages which may not be able
+to generate enough revenue to cover the fixed costs. However, the
+costs are not that high in UK, even though it is an English speaking
+country which might be reasonable considering the proximity of UK to
+the European countries and the fact that it was a part of European
+Union. Third, we also find that the fixed costs are varying by
+destination and origin country. Finally, we split the sample into two
+time periods and find that the fixed costs are not increasing over
+time.
 \newpage
 \bibliography{papers}
 \newpage
-\begin{appendix}
-  \section{Replication Code and Files}
-  The code for this exercise was written in \texttt{R} and
-  \texttt{Julia}. The code is available on my Github
+\begin{appendices}
+  \section{Replication Code and Files} \label{appendix:a} The code for
+  this exercise was written in \texttt{R} and \texttt{Julia}. The code
+  is available on my Github
   repository\footnote{\url{https://www.github.com/dhananjayghei/io_estimation}}
-The code is present in the \texttt{src/} folder. The following files
-will run the code:
+  The code is present in the \texttt{src/} folder. The following files
+  will run the code:
 \begin{enumerate}
 \item \texttt{final.R} - This is the \texttt{R} file that reads in the
   data, cleans it and generates tables for Section 3.2 (summary
@@ -443,5 +498,5 @@ will run the code:
   reads in the cleaned data, performs estimation and reports the bound
   estimates and the confidence intervals.
 \end{enumerate}
-\end{appendix}
+\end{appendices}
 \end{document}
