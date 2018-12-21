@@ -1,0 +1,259 @@
+\documentclass[11pt, letterpaper]{article} \usepackage{amsmath}
+\usepackage{amssymb} \usepackage{graphicx} \usepackage{bbm}
+\usepackage{geometry} \usepackage{natbib} \usepackage{float}
+\usepackage{appendix} \usepackage{hyperref} \usepackage{rotating}
+\usepackage{mathrsfs} \floatstyle{ruled} \restylefloat{table}
+\restylefloat{figure} \bibliographystyle{unsrtnat}
+\newcommand{\floatintro}[1]{
+  
+  \vspace*{0.1in}
+  
+  {\footnotesize
+
+    #1
+    
+  }
+  
+  \vspace*{0.1in} } \newcommand{\Hline}{\noindent\rule{18cm}{0.5pt}}
+\title{How much does it cost to export a movie abroad?} \author{Dhananjay Ghei} \date{December 20, 2018}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+
+\end{abstract}
+\newpage
+\tableofcontents
+\newpage
+\section{Introduction}
+What is the fixed cost of exporting a movie to a foreign country? This
+paper tries to answer this question using a moment inequality approach
+by estimating the bounds on the fixed costs. In particular, we use a
+revealed preference approach as in \citep{pakes2015}. We use the data
+on exports of movies from 5 different countries (France, Germany,
+Spain, UK and US) to each other between 2001-2009.  Exporting
+decisions of a firm depends on the expected profit it will earn when
+serving a foreign market. Such estimates are rarely observed in the
+data. Thus, while the firm observes the fixed cost of exporting, the
+econometrician does not. Moment inequality approach relies on the
+information set available to the firms which are making the exporting
+decisions to put a bound on these estimates.
+
+The estimation methodology in the paper is closely related to a
+growing body of literature in the field of moment inequalities. Some
+of these papers include \citet{chernozhukov2013}, \citet{manski2004},
+\citet{pakes2010}, \citet{andrews2010}, \citet{holmes2011},
+\citet{ho2009}. One benefit of using this approach is that we need not
+require the econometrician to have full knowledge of the exporter's
+information set. The econometrician can rely on certain key variables
+from the information set and yet derive consistent estimates (or,
+bounds) based on this smaller information set. Therefore, in this case
+the estimates are only partially identified instead of being point
+identified. This gives us a more reasonable range of numbers which can
+be shown to be consistent in large samples.
+
+The rest of the paper is organised as follows. In Section 2, we
+describe the model that is used for constructing the decisions to
+export. Section 3 describes the data, some issues at hand while
+cleaning the data and the summary statistics on the data. Section 4
+lays out the construction for moment inequalities and estimation
+procedure for the same. Section 5 discusses the results and Section 6
+concludes.
+\section{Model}
+We follow closely to \citep{dickstein2018} in the model's
+notation. Consider a movies' export decision. All movies' of country
+$h$ choose whether to export in each of the export markets $j$. In our
+case, $h,j=1,2,3,4,5$ where the numbers denote the following
+countries, namely - France(1), Germany(2), Spain(3), UK(4), US(5).\\
+The firms' decide whether to export the movie to any of the $j$
+countries or not. If it decides to export, it pays a fixed exporting
+cost. \\
+We model the export profits that movie $i$ from country $h$ would
+obtain in country $j$ at time $t$ as:
+\begin{align*}
+  \pi_{ijt} = \eta^{-1}r_{ijt} - f_{ijt}
+\end{align*}
+where, $\eta$ is the demand elasticity assumed to be constant across
+markets, $r_{ijt}$ is the revenue that the movie $i$ earns in country
+$j$ at time $t$ and $f_{ijt}$ is the fixed cost of exporting the movie
+$i$ to country $j$ in time $t$. \\
+We model the fixed export cost in three different ways - firstly, the
+fixed costs are assumed to be destination/origin/time invariant;
+secondly, the fixed costs are assumed to be destination-country
+specific; and thirdly, the fixed costs are allowed to be
+destination-origin country specific. These cases are shown below:
+\begin{align*}
+  f_{ijt} = \begin{cases}
+    \beta_0 + \nu_{ijt}\\
+    \beta_{0j} + \nu_{ijt}\\
+    \beta_{0ij} + \nu_{ijt}
+  \end{cases}
+\end{align*}
+where, $\nu_{ijt}$ is the residual term that the econometrician does
+not observe. We assume that the firms know the fixed costs $f_{ijt}$.
+We will assume that the error term in the fixed cost $\nu_{ijt}$
+follows a normal distribution and is independent of export
+determinants i.e.
+\begin{align*}
+  \nu_{ijt} \perp \mathcal{I}_{ijt} \qquad \nu_{ijt} \sim N(0, \sigma_v^2)
+\end{align*}
+where, $\mathcal{I}_{ijt}$ is the information set of firm $i$ on
+country $j$ at time $t$.\\
+The risk-neutral firm $i$ will decide to export to country $j$ in
+period $t$ if the expected profit is greater than or equal to zero
+i.e. $\mathbb{E}[\pi_{ijt} | \mathcal{I}_{ijt}, \nu_{ijt}] \geq 0$.
+The information set $\mathcal{I}_{ijt}$ contains the variables that a
+movie $i$ uses to predict the revenue in the country $j$ at time
+$t$. These variables could include predicted revenue, prices, etc.\\
+The expected profits can be written more explicitly as:
+\begin{align*}
+  \mathbb{E}[\pi_{ijt}|\mathcal{I}_{ijt}, \nu_{ijt}] = \eta^{-1}
+  \mathbb{E}[r_{ijt} | \mathcal{I}_{ijt}, \nu_{ijt}] - \beta_0 - \nu_{ijt}
+\end{align*}
+Let
+$d_{ijt} = \mathbbm{1}\{\eta^{-1}\mathbb{E}[r_{ijt} |
+\mathcal{I}_{ijt}, \nu_{ijt}] - \beta_0 - \nu_{ijt} \geq 0\}$
+denote the decision of movie $i$ to export to country $j$ at time $t$
+where, $\mathbbm{1}$ denotes the indicator function.
+\section{Data}
+We have data on movies from 5 different countries - France, Germany,
+Spain, UK and US from 2001-2009. There are a total of 5500
+observations over the 8 years. The data set contains observations on
+the actual revenue in the country where the movie was released and the
+predicted revenue if the movie was not exported to the country. We
+also have a data set on the average box office ticket price in the 5
+countries.
+\subsection{Data cleaning}
+There are certain discrepancies in the data set which one needs to
+take care of before proceeding to estimation. For example, consider
+the movie ``Harry Potter and the Sorcerer's Stone'' which is a movie
+from UK but has missing value of actual revenues in the UK. This is
+because the movie was released in the UK under the name ``Harry Potter
+and the Philosopher's Stone'' and therefore, these values are
+missing. In particular, we have 643 observations of this sort. We drop
+these observations from our analysis as this will bias our
+estimates. Thus, we have a total of 4857 observations after
+dropping these observations. \\
+In addition, there are some other movie titles which are
+duplicated. Consider for example, ``Berlin Is in Germany'' which is
+labelled both as a German and French movie. There are 19 such
+duplicates. This is particularly because the movies were jointly
+produced in the two countries. However, estimating the fixed costs
+using such observations will lead to double counting in the first two
+cases and therefore, we need to drop these observations for the
+initial analysis.
+\subsection{Summary statistics}
+
+\begin{table}[htbp!]
+  \floatintro{The table shows the average revenues of movies released
+    in different countries. The first column shows the year and the
+    horizontal row shows the average revenues collected across
+    different countries. The values are in millions of US dollars.}
+  \centering
+  \input{./tables/final_tab2_float.gen}
+  \caption{Actual yearly average revenues collected (in millions USD)}
+  \label{tab:1}
+\end{table}
+
+Table \ref{tab:2} shows the average revenues generated by movies of
+one country to the other country.
+\begin{table}[htbp!]
+  \floatintro{The table shows the average revenues of movies released
+    in different countries. The first column shows the country where
+    the movie is from and the horizontal row shows the average
+    revenues collected in that country. The values are in millions of
+    US dollars.}
+  \centering
+  \input{./tables/final_tab1_float.gen}
+  \caption{Actual cross-country (average) revenues collected (in millions USD)}
+  \label{tab:2}
+\end{table}
+
+\begin{table}[htbp!]
+  \floatintro{The table shows the percentage of movies released in
+    different countries. For example, consider the first row, 100\% of
+    the movies from France were released in France, 8.48\% of them
+    were released in Germany, 10.95\% were released in Spain, 7.70\%
+    of them were released in UK and .96\% of them were released in the
+    US.}
+  \centering
+  \input{./tables/final_tab3_float.gen}
+  \caption{Percentage of movies exported to other countries}
+  \label{tab:tab3}
+\end{table}
+
+\begin{table}[htbp!]
+  \floatintro{The table shows the predicted revenues of movie released
+    in different countries which were not exported to the other
+    country. The first column shows the country where the movie is from
+    and the horizontal row shows the average predicted revenues that
+    could potentially be collected in that country. The values are in
+    millions of USD.}
+  \centering
+  \input{./tables/final_tab4_float.gen}
+  \caption{Predicted cross-country (average) revenues (in millions USD)}
+  \label{tab:tab4}
+\end{table}
+
+\section{Methodology}
+I use the revealed preference moment inequalities for estimation of
+the lower and upper bounds. The literature used either odds-based or
+moments-based inequalities or a combination of both to estimate the
+bounds. However, I will do the revealed preferences approach as done
+in \citep{pakes2015} as this was the one we were expected to follow in
+this paper. For any $\mathcal{Z}_{ijt} \subsetneq \mathcal{I}_{ijt}$,
+we define a conditional revealed preference moment inequality as:
+\begin{align*}
+  \mathcal{M}(\mathcal{Z}_{ijt}, \theta) = \mathbb{E}\bigg[ m(d_{ijt},
+  r_{ijt}; \theta) \bigg| \mathcal{Z}_{ijt} \bigg] \geq 0
+\end{align*}
+where, $\theta$ is the list of parameters to be estimated
+$\theta = \{\beta_0, \sigma_{v}\}$ and the moment function $m$ is a
+$2 \times 1$ vector of moment conditions defined as:
+\begin{align*}
+  m_l(.) = -(1-d_{ijt})(\eta^{-1}r_{ijt} - \beta_0) + d_{ijt} \sigma
+  \frac{\phi(\sigma^{-1}(\eta^{-1}r_{ijt} -
+  \beta_0))}{\Phi(\sigma^{-1}(\eta^{-1}r_{ijt} -\beta_0))}\\
+  m_u(.) = d_{ijt})(\eta^{-1}r_{ijt} - \beta_0) + (1-d_{ijt}) \sigma
+  \frac{\phi(\sigma^{-1}(\eta^{-1}r_{ijt} -
+  \beta_0))}{1-\Phi(\sigma^{-1}(\eta^{-1}r_{ijt} -\beta_0))}
+\end{align*}
+Note the negative sign in front of the lower bound inequality
+($m_l(.)$) which is written in a way that it converts it into an
+inequality to be greater than or equal to zero. As we are only
+interested in estimating the fixed costs, we calibrate the two
+parameter values $\eta$ and $\sigma$ to be equal to 1 and 1
+respectively. Following this, we solve the revealed preference
+inequalities to estimate the parameter vector $\theta = \beta_0$
+consistently. The consistency of the estimate is proven in
+\citet{dickstein2018} for any instrument
+$\mathcal{Z}_{ijt} \subsetneq \mathcal{I}_{ijt}$ for all $i,j$ and
+$t$.\\
+Using these moment inequalities, we estimate the bounds using three
+sets of instruments:
+\begin{enumerate}
+\item The expected revenue share (if the movie was released in the
+  country) $(\mathcal{Z}_{ijt} = \{\hat s_{ijt}\})$
+\item The expected revenue share and the lagged box office ticket
+  price in the country
+  $(\mathcal{Z}_{ijt} = \{ \hat s_{ijt}, p_{jt-1}\})$
+\item The expected revenue share, the lagged box office ticket price
+  and the lagged average revenue of the exporting country in the other
+  country
+  $(\mathcal{Z}_{ijt} = \{\hat s_{ijt}, p_{jt-1}, \bar s_{ijt-1}\})$
+\end{enumerate}
+We estimate the bounds for the three cases as above.
+\section{Results}
+
+\section{Conclusion}
+
+\newpage
+\bibliography{papers}
+\newpage
+\begin{appendix}
+  \section{Replication Code and Files}
+  The code for this exercise was written in \texttt{R} and
+  \texttt{Julia}. The code is available on my Github
+  repository\footnote{\url{https://www.github.com/dhananjayghei/io_estimation}}
+\end{appendix}
+\end{document}
